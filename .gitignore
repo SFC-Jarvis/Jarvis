@@ -1,0 +1,40 @@
+# deps / build
+node_modules/
+.next/
+out/
+dist/
+coverage/
+*.tsbuildinfo
+next-env.d.ts
+
+# python
+__pycache__/
+*.pyc
+.venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# env / secrets（絶対にコミットしない）
+.env
+.env.*
+!.env.example
+
+# ローカルのデータ（ユーザーの記憶・タスクは端末内のみ）
+*.db
+*.sqlite
+data/
+
+# 個人設定
+.jarvis/*
+!.jarvis/member.example.json
+.claude/settings.local.json
+logs/
+
+# OS / editor
+.DS_Store
+.vscode/*
+!.vscode/extensions.json
+.idea/

@@ -1,0 +1,6 @@
+# 共有ルールの変更は Owner にレビュー依頼が飛ぶ（マージ条件には含めていない）
+/.github/            @1110soda
+/.claude/            @1110soda
+/CLAUDE.md           @1110soda
+/docs/CODING_RULES.md @1110soda
+/docs/schedule.json  @1110soda

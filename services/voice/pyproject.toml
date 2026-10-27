@@ -1,0 +1,47 @@
+[project]
+name = "jarvis-voice"
+version = "0.1.0"
+description = "JARVIS の音声層（Pipecat: 発話検出→文字起こし→OpenClaw→読み上げ）"
+requires-python = ">=3.12"
+dependencies = ["httpx>=0.28.1"]
+
+# 実行に必要な重い依存（Pipecat・音声認識など）は CI に入れない。
+# ローカルでは `uv sync --extra runtime` で入れる。何を入れるかは p2 の比較で決める。
+[project.optional-dependencies]
+runtime = []
+
+[dependency-groups]
+dev = ["mypy>=1.18", "pytest>=8.4", "pytest-cov>=7.0", "ruff>=0.17"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/jarvis_voice"]
+
+[tool.uv]
+package = true
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "N", "UP", "B", "SIM", "S", "RUF"]
+ignore = ["RUF001", "RUF002", "RUF003"]  # 日本語の全角記号を許可
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+mypy_path = "src"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--cov=jarvis_voice --cov-report=term-missing --cov-fail-under=70"
+
+[tool.coverage.run]
+omit = ["*/__main__.py"]

@@ -1,0 +1,25 @@
+{
+  "name": "jarvis",
+  "private": true,
+  "packageManager": "pnpm@10.28.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "./scripts/dev.sh",
+    "lint": "biome check . && pnpm py:lint",
+    "test": "pnpm test:scripts && pnpm -r test && pnpm py:test",
+    "check": "pnpm lint && pnpm -r typecheck && pnpm test",
+    "py:lint": "cd services/tools && uv run ruff check . && uv run ruff format --check . && uv run mypy src && cd ../voice && uv run ruff check . && uv run ruff format --check . && uv run mypy src",
+    "py:test": "cd services/tools && uv run pytest && cd ../voice && uv run pytest",
+    "gen:contracts": "cd services/tools && uv run python scripts/export_openapi.py && cd ../.. && pnpm --filter @jarvis/web gen:types",
+    "period": "node scripts/jarvis.mjs period",
+    "tasks": "node scripts/jarvis.mjs tasks",
+    "progress": "node scripts/jarvis.mjs progress",
+    "test:scripts": "node --test scripts/*.test.mjs",
+    "format": "biome check --write . && cd services/tools && uv run ruff format . && uv run ruff check --fix . && cd ../voice && uv run ruff format . && uv run ruff check --fix ."
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.6.3"
+  }
+}

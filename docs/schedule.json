@@ -1,0 +1,26 @@
+{
+  "$comment": "発表日・休み・担当の唯一の情報源。scripts/jarvis.mjs とカスタムコマンドが読む。変更は PR で。",
+  "timezone": "Asia/Tokyo",
+  "holidays": ["2026-11-19", "2026-11-26", "2026-12-31"],
+  "periods": [
+    { "id": "p1", "round": 1, "week": 3, "label": "第1回", "start": "2026-10-01", "end": "2026-10-15", "goal": "計画の共有" },
+    { "id": "p2", "round": 2, "week": 5, "label": "第2回", "start": "2026-10-16", "end": "2026-10-29", "goal": "各部品が単体で動く" },
+    { "id": "p3", "round": 3, "week": 7, "label": "第3回", "start": "2026-10-30", "end": "2026-11-12", "goal": "画面と声で会話できる" },
+    { "id": "p4", "round": 4, "week": 9, "label": "第4回", "start": "2026-11-13", "end": "2026-12-10", "goal": "タスクと予定を管理できる", "note": "11/19・11/26 は休み（4週間）" },
+    { "id": "p5", "round": 5, "week": 11, "label": "第5回", "start": "2026-12-11", "end": "2026-12-24", "goal": "承認・ブリーフ・記憶" },
+    { "id": "p6", "round": 6, "week": 13, "label": "第6回", "start": "2026-12-25", "end": "2027-01-14", "goal": "MVP 完成", "note": "12/31 は休み" },
+    { "id": "final", "round": 7, "week": 14, "label": "最終発表", "start": "2027-01-15", "end": "2027-01-21", "goal": "デモと初期リリースの計画" }
+  ],
+  "areas": {
+    "integration": { "name": "統合", "owner": "C", "file": "docs/tasks/integration.md" },
+    "data-tools": { "name": "データとツール", "owner": "C", "file": "docs/tasks/data-tools.md" },
+    "voice": { "name": "音声", "owner": "A", "file": "docs/tasks/voice.md" },
+    "web": { "name": "画面", "owner": "B", "file": "docs/tasks/web.md" },
+    "qa": { "name": "品質保証", "owner": "all", "file": "docs/tasks/qa.md" }
+  },
+  "members": {
+    "C": { "name": "Sota", "github": "1110soda" },
+    "A": { "name": "メンバーA", "github": "" },
+    "B": { "name": "メンバーB", "github": "" }
+  }
+}

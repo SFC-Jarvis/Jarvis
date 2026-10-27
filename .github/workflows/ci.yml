@@ -1,0 +1,115 @@
+name: CI
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review, labeled, unlabeled]
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  scripts:
+    name: scripts（補助スクリプトのテスト）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+      - run: node --test scripts/*.test.mjs
+
+  web:
+    name: web（lint・型・テスト・ビルド）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec biome ci .
+      - run: pnpm --filter @jarvis/web typecheck
+      - run: pnpm --filter @jarvis/web test
+      - run: pnpm --filter @jarvis/web build
+
+  python:
+    name: ${{ matrix.service }}（ruff・mypy・pytest）
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [tools, voice]
+    defaults:
+      run:
+        working-directory: services/${{ matrix.service }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --locked
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy src
+      - run: uv run pytest
+
+  contracts:
+    name: contracts（API 仕様と画面の型が最新か）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: cd services/tools && uv sync --locked
+      - run: pnpm gen:contracts
+      - name: 差分がないこと
+        run: |
+          if ! git diff --exit-code -- contracts apps/web/src/lib/generated; then
+            echo "::error::contracts/tools-api.json か画面の型が古いです。pnpm gen:contracts を実行してコミットしてください"
+            exit 1
+          fi
+
+  test-guard:
+    name: test-guard（コード変更にテストが付いているか）
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+      - run: node scripts/check-tests.mjs origin/${{ github.base_ref }}
+        env:
+          SKIP_TEST_GUARD: ${{ contains(github.event.pull_request.labels.*.name, 'no-test-needed') && '1' || '0' }}
+
+  # ブランチ保護で「必須」に指定するのはこのジョブだけ（ジョブを増やしても保護設定を変えなくてよい）
+  ci-ok:
+    name: ci-ok
+    if: always()
+    needs: [scripts, web, python, contracts, test-guard]
+    runs-on: ubuntu-latest
+    steps:
+      - name: すべて成功したか
+        run: |
+          echo '${{ toJSON(needs) }}'
+          if [ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" = "true" ]; then
+            echo "::error::失敗したジョブがあります"
+            exit 1
+          fi
