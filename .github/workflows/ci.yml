@@ -22,6 +22,7 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
+          package-manager-cache: false
       - run: node --test scripts/*.test.mjs
 
   web:
@@ -95,6 +96,7 @@ jobs:
       - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
+          package-manager-cache: false
       - run: node scripts/check-tests.mjs origin/${{ github.base_ref }}
         env:
           SKIP_TEST_GUARD: ${{ contains(github.event.pull_request.labels.*.name, 'no-test-needed') && '1' || '0' }}
