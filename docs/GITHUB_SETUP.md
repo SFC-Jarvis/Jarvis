@@ -48,6 +48,8 @@ gh auth status                           # 1110soda でログインしている�
 2. `./scripts/setup-github.sh <ユーザー名1> <ユーザー名2>` を実行する（developers チーム・Write 権限で招待。メールが届く）
    - 招待はブラウザでも可: Organization の People →「Invite member」→ ユーザー名 → Role は **Member** → Team は **developers**
    - **Owner にはしない**（Owner は保護ルールを迂回できるため）
+   - ユーザー名は表示名ではなく、プロフィールの URL `github.com/<ユーザー名>` の部分（英数字とハイフンのみ。`_` は使えない）
+   - 初回は招待に必要な権限（admin:org）の追加を求められる。ブラウザでコードを入力する
 3. 2 人にリポジトリのリンクを送り、「README の『1. まず自分のページを開く』で A（音声）・B（画面）を読んで相談し、担当を決めてから setup.sh を実行して」と伝える
 4. 各自が `./scripts/setup.sh` で ID を選ぶと、`docs/schedule.json` に自分のユーザー名を書く **登録 PR** が自動で作られる
    - すでに登録された ID は、ほかの人は選べない（登録 PR がマージされるまでは確定しない）
