@@ -21,7 +21,7 @@ fi
 # ユーザー名が存在するか先に確認（GitHub のユーザー名は英数字とハイフンのみ。表示名ではない）
 for u in "$@"; do
   if ! gh api "users/$u" >/dev/null 2>&1; then
-    echo "  ✗ GitHub ユーザー「$u」が見つかりません。プロフィールの URL（github.com/<ユーザー名>）の名前を確認してください"
+    echo "  ✗ GitHub ユーザー「${u}」が見つかりません。プロフィールの URL（github.com/<ユーザー名>）の名前を確認してください"
     exit 1
   fi
 done
