@@ -18,6 +18,7 @@ allowed-tools: Bash(node scripts/jarvis.mjs:*), Bash(git status:*), Bash(git log
 1. **メンバーが未設定**なら止めて、`./scripts/setup.sh` の実行を案内する。
 2. **再開か開始かを判定する。**
    - 今のブランチが `<自分のID小文字>/<今の期間ID>-*` なら **再開**。
+   - 手元にそのブランチがなくても、`git fetch origin` 後に `git branch -r --list 'origin/<自分のID小文字>/<今の期間ID>-*'` で見つかれば、`git switch <ブランチ名>`（origin を追跡）してから **再開**（別の PC で作業していた場合）。
    - それ以外なら **開始**。
 3. **再開の場合**
    - `gh pr view --json body,url` で PR 本文の「引き継ぎメモ」を読む。

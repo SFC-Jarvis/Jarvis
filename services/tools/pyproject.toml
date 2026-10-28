@@ -35,7 +35,7 @@ select = ["E", "F", "W", "I", "N", "UP", "B", "SIM", "S", "RUF"]
 ignore = ["RUF001", "RUF002", "RUF003"]  # 日本語の全角記号を許可
 
 [tool.ruff.lint.per-file-ignores]
-"tests/**" = ["S101"]
+"tests/**" = ["S101", "N802"]  # テスト名は日本語にするため
 
 [tool.mypy]
 python_version = "3.12"
