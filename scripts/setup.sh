@@ -14,10 +14,10 @@ OS=linux
 if [ "$(uname)" = "Darwin" ]; then OS=mac
 elif grep -qi microsoft /proc/version 2>/dev/null; then OS=wsl; fi
 
-step "1. 必要なツール（$OS）"
+step "1. 必要なツール（${OS}）"
 if [ "$OS" = wsl ]; then
   case "$ROOT" in
-    /mnt/*) warn "リポジトリが Windows 側（$ROOT）にあります。WSL のホーム（~/）に clone し直してください（遅く、権限も壊れやすいため）"; exit 1 ;;
+    /mnt/*) warn "リポジトリが Windows 側（${ROOT}）にあります。WSL のホーム（~/）に clone し直してください（遅く、権限も壊れやすいため）"; exit 1 ;;
   esac
 fi
 
@@ -32,7 +32,7 @@ else
   NEED=""
   for f in git tmux curl unzip wget; do command -v "$f" >/dev/null || NEED="$NEED $f"; done
   if [ -n "$NEED" ]; then
-    echo "  apt でインストール:$NEED（sudo のパスワードを聞かれます。入力しても画面には表示されません）"
+    echo "  apt でインストール:${NEED}（sudo のパスワードを聞かれます。入力しても画面には表示されません）"
     sudo apt-get update -qq && sudo apt-get install -y -qq $NEED build-essential
   fi
   if ! command -v gh >/dev/null; then
@@ -122,7 +122,7 @@ else
   for id in C A B; do
     o=$(owner_of "$id")
     case "$id" in C) area="統合・データとツール";; A) area="音声";; B) area="画面";; esac
-    if [ -n "$o" ]; then echo "      $id = $area（使用中: $o）"; else echo "      $id = $area（空き）"; fi
+    if [ -n "$o" ]; then echo "      $id = ${area}（使用中: ${o}）"; else echo "      $id = ${area}（空き）"; fi
   done
   read -r -p "    メンバー ID を入力 [A/B/C]: " MID
   MID=$(echo "$MID" | tr '[:lower:]' '[:upper:]')
