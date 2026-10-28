@@ -43,11 +43,24 @@ gh auth status                           # 1110soda でログインしている�
 - main の削除・force push を禁止
 - 迂回できるのは Organization の Owner だけ、かつ PR 経由のみ（直接 Push は Owner でも不可）
 
-### 4. メンバーを招待する
-1. A・B に GitHub のユーザー名を聞く
-2. `./scripts/setup-github.sh <Aのユーザー名> <Bのユーザー名>` を実行する（招待メールが届く）
-3. `docs/schedule.json` の `members.A.github` / `members.B.github` と、`docs/PROJECT.md` の体制表を更新する PR を出す
-4. メンバーには docs/SETUP.md を渡す
+### 4. メンバーを招待する（担当が未定でもよい）
+1. 2 人に GitHub のユーザー名を聞く
+2. `./scripts/setup-github.sh <ユーザー名1> <ユーザー名2>` を実行する（developers チーム・Write 権限で招待。メールが届く）
+   - 招待はブラウザでも可: Organization の People →「Invite member」→ ユーザー名 → Role は **Member** → Team は **developers**
+   - **Owner にはしない**（Owner は保護ルールを迂回できるため）
+3. 2 人にリポジトリのリンクを送り、「README の『1. まず自分のページを開く』で A（音声）・B（画面）を読んで相談し、担当を決めてから setup.sh を実行して」と伝える
+4. 各自が `./scripts/setup.sh` で ID を選ぶと、`docs/schedule.json` に自分のユーザー名を書く **登録 PR** が自動で作られる
+   - すでに登録された ID は、ほかの人は選べない（登録 PR がマージされるまでは確定しない）
+5. 登録 PR を Owner が確認して Approve → マージ。docs/PROJECT.md の体制表の GitHub 欄も後で更新する
+
+権限のまとめ:
+| | Owner（Sota） | developers（A・B） |
+|---|---|---|
+| ブランチを作って Push・PR 作成 | ○ | ○ |
+| ほかの人の PR を Approve | ○ | ○ |
+| 自分の PR を Approve | ×（GitHub の仕様） | × |
+| Approve と CI 成功の前にマージ | ○（bypass、PR 経由のみ） | × |
+| main へ直接 Push | × | × |
 
 ### 5. 動作確認
 - [ ] https://github.com/SFC-Jarvis/Jarvis/settings/rules に「main を守る」が Active で表示される

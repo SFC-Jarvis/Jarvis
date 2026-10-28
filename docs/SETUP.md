@@ -33,7 +33,7 @@ cd Jarvis
 - git / gh / uv / pnpm / tmux のインストール
 - 依存ライブラリのインストール
 - `.env.local` の作成
-- **メンバー ID（A/B/C）の登録**
+- **メンバー ID（A/B/C）の選択と登録**（担当が未定なら、先に README の A・B のページを読んでチームで決める。登録済みの ID は選べない。選ぶと登録の PR が自動で作られ、Owner の Approve で確定）
 - GitHub へのログイン
 
 ## 3. 開いてみる
