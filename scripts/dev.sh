@@ -64,13 +64,13 @@ status
 
 if tmux has-session -t "$SESSION" 2>/dev/null; then
   echo "すでに起動中です。接続します（止めるには ./scripts/dev.sh stop）"
-  exec tmux attach -t "$SESSION"
+  exec tmux -u attach -t "$SESSION"
 fi
 
 # 各ウィンドウで .env.local を読み込んでから実行する
 run() { printf "cd '%s' && set -a && source .env.local && set +a && export JARVIS_MOCK=%s && %s" "$ROOT" "${JARVIS_MOCK:-0}" "$1"; }
 
-tmux new-session -d -s "$SESSION" -n web -c "$ROOT" "bash -c \"$(run 'pnpm --filter @jarvis/web dev'); exec bash\""
+tmux -u new-session -d -s "$SESSION" -n web -c "$ROOT" "bash -c \"$(run 'pnpm --filter @jarvis/web dev'); exec bash\""
 tmux new-window -t "$SESSION" -n tools -c "$ROOT" "bash -c \"$(run 'cd services/tools && uv run python -m jarvis_tools'); exec bash\""
 if [ "$VOICE" = 1 ]; then
   tmux new-window -t "$SESSION" -n voice -c "$ROOT" "bash -c \"$(run 'cd services/voice && uv run --extra runtime python -m jarvis_voice'); exec bash\""
@@ -81,8 +81,7 @@ else
   tmux new-window -t "$SESSION" -n shell -c "$ROOT"
 fi
 # 画面下のバー: 左に今のウィンドウ一覧、右に操作方法を常に表示する
-# （文字化けしないよう、バーの中は英数字だけにする）
-tset() { tmux set-option -t "$SESSION" "$@" >/dev/null; }
+tset() { tmux -u set-option -t "$SESSION" "$@" >/dev/null; }
 tset mouse on
 tset status-style "bg=colour24,fg=colour255"
 tset status-left-length 20
@@ -90,14 +89,17 @@ tset status-left "#[bold] JARVIS #[nobold]| "
 tset window-status-format " #I:#W "
 tset window-status-current-format "#[bg=colour214,fg=colour16,bold] #I:#W "
 # 操作方法はバーの 2 行目に出す（縦長のモニターなど幅が狭くても切れないように）
-HELP="Switch: press Ctrl-b, release, then 0-9 | Detach: Ctrl-b d | Stop: ./scripts/dev.sh stop"
-if tmux set-option -t "$SESSION" status 2 2>/dev/null; then
+# tmux は -u で UTF-8 を強制しているので、日本語で表示する
+HELP="ウィンドウ切替: Ctrl-b を押して離してから番号（0〜9） ｜ 抜ける: Ctrl-b → d ｜ 止める: ./scripts/dev.sh stop"
+if tmux -u set-option -t "$SESSION" status 2 2>/dev/null; then
+  # セッションに status-format を設定すると 1 行目の既定も消えるため、既定の 1 行目を写してから 2 行目を足す
+  tset 'status-format[0]' "$(tmux show-options -gv 'status-format[0]')"
   tset status-right ""
   tset 'status-format[1]' "#[align=left,bg=colour236,fg=colour252] $HELP"
 else
   # 古い tmux（2.9 未満）は 1 行だけ。短い説明を右に出す
-  tset status-right-length 60
-  tset status-right " Ctrl-b 0-9: switch | Ctrl-b d: detach "
+  tset status-right-length 80
+  tset status-right " 切替: Ctrl-b → 番号 ｜ 抜ける: Ctrl-b → d "
 fi
 
 if [ "$BROWSER" = 1 ]; then
@@ -115,5 +117,5 @@ cat <<'MSG'
 
 MSG
 sleep 2
-tmux attach -t "$SESSION" || true
+tmux -u attach -t "$SESSION" || true
 remind
