@@ -16,7 +16,12 @@ brew install fnm
 fnm install 24 && fnm default 24     # ~/.zshrc に eval "$(fnm env --use-on-cd)" を追加（fnm の案内に従う）
 node -v                              # v24.x
 ```
-Claude Code は公式の手順でインストールする: https://docs.claude.com/en/docs/claude-code/overview
+Claude Code:
+```bash
+curl -fsSL https://claude.ai/install.sh | bash
+claude --version      # 見つからなければ表示された PATH の設定を ~/.zshrc に追加
+```
+最新の手順は https://docs.claude.com/en/docs/claude-code/overview を確認する。
 
 ## 2. リポジトリを取得してセットアップ
 ```bash
@@ -35,7 +40,7 @@ cd Jarvis
 ```bash
 ./scripts/dev.sh --mock      # OpenClaw なしで画面を開く（http://localhost:3000）
 ```
-tmux の操作:
+ターミナルは tmux に切り替わり、Claude Code のウィンドウが前面に出る（正常）。tmux の操作:
 - ウィンドウの切り替え: `Ctrl-b` → 数字
 - 抜ける: `Ctrl-b` → `d`
 - 全部止める: `./scripts/dev.sh stop`
