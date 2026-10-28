@@ -6,7 +6,7 @@ requires-python = ">=3.12"
 dependencies = ["httpx>=0.28.1"]
 
 # 実行に必要な重い依存（Pipecat・音声認識など）は CI に入れない。
-# ローカルでは `uv sync --extra runtime` で入れる。何を入れるかは p2 の比較で決める。
+# ローカルでは `uv sync --extra runtime` で入れる。何を入れるかは VO-3-1 の比較で決める。
 [project.optional-dependencies]
 runtime = []
 

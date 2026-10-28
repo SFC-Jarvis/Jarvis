@@ -2,8 +2,8 @@
 
 全員で使う。各ファイルは期間ごとに追記する。
 
-- `scenarios.md` … 会話のテストシナリオと結果（QA-3-1〜）
-- `security-checklist.md` … セキュリティ確認表（QA-4-2〜）
+- `scenarios.md` … 会話のテストシナリオと結果（QA-4-1〜）
+- `security-checklist.md` … セキュリティ確認表（QA-4-3〜）
 - `ux-metrics.md` … 体験の計測（応答時間・使いやすさ）（QA-3-2〜）
 - `manual-checks.md` … 実機でしか確かめられない確認（マイク・スピーカー・GPU）
 

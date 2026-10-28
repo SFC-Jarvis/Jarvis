@@ -55,7 +55,7 @@ tmux の `claude` ウィンドウ（または `claude` コマンド）で:
 詳しくは docs/WORKFLOW.md。自分の担当の作業と読む資料は **docs/members/<自分のID>.md**。
 
 ## 5. 部品ごとの準備（必要になったら）
-各担当者が、自分の部品の導入手順をここに追記する（QA-2-2）。
+各担当者が、自分の部品の導入手順をここに追記する（QA-3-1）。
 
 ### OpenClaw（統合: C が記入）
 openclaw/README.md を参照。終わったら `.env.local` の `OPENCLAW_GATEWAY_TOKEN` を埋め、`JARVIS_MOCK=0` にする。
@@ -64,7 +64,7 @@ openclaw/README.md を参照。終わったら `.env.local` の `OPENCLAW_GATEWA
 ```bash
 brew install ollama        # またはアプリ版
 ollama serve               # アプリ版なら起動するだけ
-# 使うモデル名は INT-2-2 で決めて、ここに書く（ollama.com/library で正式な名前を確認）
+# 使うモデル名は INT-3-2 で決めて、ここに書く（ollama.com/library で正式な名前を確認）
 ```
 
 ### AivisSpeech（音声: A が記入）
