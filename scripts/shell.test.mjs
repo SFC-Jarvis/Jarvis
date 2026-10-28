@@ -13,7 +13,7 @@ test('シェルスクリプトで変数の直後に日本語を続けていな�
     readFileSync(join(dir, f), 'utf8')
       .split('\n')
       .forEach((line, i) => {
-        if (/\$[A-Za-z_][A-Za-z0-9_]*[^\x00-\x7F]/.test(line)) bad.push(`${f}:${i + 1}`);
+        if (/\$[A-Za-z_]\w*\P{ASCII}/u.test(line)) bad.push(`${f}:${i + 1}`);
       });
   }
   assert.deepEqual(bad, []);
