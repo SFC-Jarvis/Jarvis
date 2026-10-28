@@ -1,0 +1,9 @@
+# 改行は LF に統一（Windows で clone しても .sh などが壊れないように）
+* text=auto eol=lf
+*.sh text eol=lf
+*.png binary
+*.jpg binary
+*.ico binary
+*.wav binary
+*.mp3 binary
+*.db binary

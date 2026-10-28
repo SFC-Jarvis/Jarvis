@@ -31,6 +31,10 @@
 2. contracts/ の変更だけの小さな PR を作り、相手の Approve をもらってマージ
 3. 各自 `/sync` で取り込む
 
+## 複数の PC で作業するとき（例: 学校は Mac、家は Windows）
+- PC を替える前に必ず `/done`（Push と PR の更新）
+- 別の PC では `/start`。Push 済みの作業ブランチを取ってきて、PR の引き継ぎメモから再開する
+
 ## 衝突を減らすために
 - 自分の分野のファイル（docs/tasks/<分野>.md を含む）以外は原則触らない
 - 共有ファイル（package.json、CI、CLAUDE.md、docs/CODING_RULES.md）の変更は単独の小さな PR にする

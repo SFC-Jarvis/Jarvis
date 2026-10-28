@@ -18,7 +18,7 @@ https://github.com/apps/claude/installations/select_target → SFC-Jarvis → Ja
 ### 2. 最初のコミットを main に入れる
 初期構築のコミットが main に入っていることを確認する（保護ルールを入れる前に行う）。
 
-### 3. 設定スクリプトを実行する（Mac）
+### 3. 設定スクリプトを実行する（Mac または Windows の WSL2）
 ```bash
 git clone https://github.com/SFC-Jarvis/Jarvis.git && cd Jarvis
 ./scripts/setup.sh                       # 自分の開発環境（メンバー ID は C）

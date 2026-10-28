@@ -7,7 +7,7 @@
 
 ## はじめに
 ```bash
-./scripts/setup.sh        # 初回だけ（手順: docs/SETUP.md）
+./scripts/setup.sh        # 初回だけ（手順: Mac は docs/SETUP.md、Windows は docs/SETUP_WINDOWS.md）
 ./scripts/dev.sh --mock   # 開発環境を開く
 claude                    # → /start
 ```
@@ -15,7 +15,7 @@ claude                    # → /start
 ## ドキュメント
 | 読む人 | ファイル |
 |---|---|
-| 全員（最初に） | [docs/SETUP.md](docs/SETUP.md) / [docs/WORKFLOW.md](docs/WORKFLOW.md) / [docs/CODING_RULES.md](docs/CODING_RULES.md) |
+| 全員（最初に） | [docs/SETUP.md](docs/SETUP.md)（Windows は [SETUP_WINDOWS.md](docs/SETUP_WINDOWS.md)） / [docs/WORKFLOW.md](docs/WORKFLOW.md) / [docs/CODING_RULES.md](docs/CODING_RULES.md) |
 | 進捗を見る | [docs/tasks/](docs/tasks/)（チェックリスト）、`pnpm progress`、各自の Draft PR |
 | Owner | [docs/GITHUB_SETUP.md](docs/GITHUB_SETUP.md) |
 | Claude Code | [CLAUDE.md](CLAUDE.md) と各フォルダの CLAUDE.md、[.claude/commands/](.claude/commands/) |

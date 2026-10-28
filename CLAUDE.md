@@ -19,6 +19,8 @@
 | `contracts/` | 部品間の仕様（OpenAPI・イベント定義） | — | 全員で決める |
 | `docs/` | 計画・ルール・タスク（=進捗チェックリスト） | — | 全員 |
 
+開発環境: macOS または Windows の WSL2（Ubuntu）。スクリプトは bash。OS ごとの違いは config とスクリプトに閉じ込める（docs/CODING_RULES.md「OS の違い」）
+
 ポート: web 3000 / tools 8700 / voice 8710 / OpenClaw 18789 / Ollama 11434 / AivisSpeech 10101（すべて 127.0.0.1 のみ）
 
 ## よく使うコマンド

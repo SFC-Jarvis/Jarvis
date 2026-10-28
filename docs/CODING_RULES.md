@@ -34,6 +34,13 @@
 - モジュールの役割: `config.py`（設定）/ `db.py`（接続）/ ドメインごとのモジュール / `api.py`・`mcp_server.py`（入口）。入口にロジックを書かない
 - SQL はプレースホルダ（`?`）を使う。文字列連結で SQL を作らない
 
+## OS の違い（macOS・WSL2・次学期の Windows ネイティブ）
+- パスは `pathlib.Path` / `node:path` で組み立てる。`/` や `\` を文字列でつながない。ホームの下を直書きしない
+- OS ごとに変わる値（データの保存先など）は `config.py` などの設定に閉じ込め、`sys.platform` を引数で差し替えられるようにしてテストする
+- シェルスクリプトは bash（macOS と WSL で動く）。macOS 専用のコマンド（`open`・`pbcopy`・BSD 版 `sed -i ''`）を直接使わない
+- 改行は LF（`.gitattributes` で強制）。ファイル名の大文字・小文字の違いだけで区別しない
+- マイク・スピーカーはブラウザ経由で扱う（WSL ではサーバー側から直接使えないことがあるため）
+
 ## 部品間の仕様（contracts/）
 - tools の HTTP API: `contracts/tools-api.json`（FastAPI から自動生成。CI が差分を検査）
 - 音声と画面のイベント: `contracts/voice-events.md`

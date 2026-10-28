@@ -24,6 +24,14 @@ for a in "$@"; do
   esac
 done
 
+# ブラウザを開く（mac: open / WSL: Windows の既定ブラウザ / Linux: xdg-open）
+open_url() {
+  if [ "$(uname)" = Darwin ]; then open "$1"
+  elif grep -qi microsoft /proc/version 2>/dev/null; then cmd.exe /c start "" "$1" >/dev/null 2>&1 || explorer.exe "$1"
+  else xdg-open "$1" >/dev/null 2>&1 || echo "ブラウザで $1 を開いてください"; fi
+}
+IS_WSL=0; grep -qi microsoft /proc/version 2>/dev/null && IS_WSL=1
+
 [ -f .env.local ] || { echo ".env.local がありません。先に ./scripts/setup.sh を実行してください"; exit 1; }
 set -a; source .env.local; set +a
 [ -n "$MOCK" ] && export JARVIS_MOCK=1
@@ -32,8 +40,8 @@ probe() { curl -fs -m 2 "$1" >/dev/null 2>&1 && printf "\033[32m起動中\033[0m
 status() {
   echo "── 周辺サービス ──"
   printf "  OpenClaw    %s  %s\n" "$(probe "${OPENCLAW_BASE_URL:-http://127.0.0.1:18789}/v1/models")" "（停止なら: openclaw gateway）"
-  printf "  Ollama      %s  %s\n" "$(probe "${OLLAMA_BASE_URL:-http://127.0.0.1:11434}/api/tags")" "（停止なら: ollama serve / アプリを起動）"
-  printf "  AivisSpeech %s  %s\n" "$(probe "${AIVIS_BASE_URL:-http://127.0.0.1:10101}/version")" "（音声を使うときだけ必要）"
+  printf "  Ollama      %s  %s\n" "$(probe "${OLLAMA_BASE_URL:-http://127.0.0.1:11434}/api/tags")" "$([ $IS_WSL = 1 ] && echo '（停止なら: Windows 側で Ollama を起動）' || echo '（停止なら: ollama serve / アプリを起動）')"
+  printf "  AivisSpeech %s  %s\n" "$(probe "${AIVIS_BASE_URL:-http://127.0.0.1:10101}/version")" "（音声を使うときだけ必要$([ $IS_WSL = 1 ] && echo '。Windows 側で起動'))"
   [ "${JARVIS_MOCK:-0}" = "1" ] && echo "  ※ JARVIS_MOCK=1: 画面は OpenClaw なしで固定の返答を返します"
   echo "── 今の作業 ──"
   node scripts/jarvis.mjs context --brief | sed 's/^/  /'
@@ -76,7 +84,7 @@ tmux set-option -t "$SESSION" mouse on >/dev/null
 tmux set-option -t "$SESSION" status-right " ウィンドウ切替: Ctrl-b → 数字 ／ 離脱: Ctrl-b d " >/dev/null
 
 if [ "$BROWSER" = 1 ]; then
-  ( for _ in $(seq 1 30); do curl -fs -m 1 http://localhost:3000 >/dev/null 2>&1 && { open http://localhost:3000; break; }; sleep 1; done ) &
+  ( for _ in $(seq 1 30); do curl -fs -m 1 http://localhost:3000 >/dev/null 2>&1 && { open_url http://localhost:3000; break; }; sleep 1; done ) &
 fi
 
 echo "tmux で開きます（Claude のウィンドウで /start）。終了: ./scripts/dev.sh stop"

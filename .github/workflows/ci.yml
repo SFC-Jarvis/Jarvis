@@ -15,15 +15,19 @@ permissions:
 
 jobs:
   scripts:
-    name: scripts（補助スクリプトのテスト）
-    runs-on: ubuntu-latest
+    name: scripts（補助スクリプトのテスト・${{ matrix.os }}）
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v5
         with:
           node-version-file: .nvmrc
           package-manager-cache: false
-      - run: node --test scripts/*.test.mjs
+      - run: node --test "scripts/*.test.mjs"
 
   web:
     name: web（lint・型・テスト・ビルド）
@@ -60,6 +64,25 @@ jobs:
       - run: uv run ruff check .
       - run: uv run ruff format --check .
       - run: uv run mypy src
+      - run: uv run pytest
+
+  # 次学期の Windows デスクトップアプリに備え、Python のテストは Windows でも実行する
+  python-windows:
+    name: ${{ matrix.service }}（pytest・Windows）
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [tools, voice]
+    defaults:
+      run:
+        working-directory: services/${{ matrix.service }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+      - run: uv sync --locked
       - run: uv run pytest
 
   contracts:
@@ -105,7 +128,7 @@ jobs:
   ci-ok:
     name: ci-ok
     if: always()
-    needs: [scripts, web, python, contracts, test-guard]
+    needs: [scripts, web, python, python-windows, contracts, test-guard]
     runs-on: ubuntu-latest
     steps:
       - name: すべて成功したか
