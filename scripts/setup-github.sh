@@ -13,6 +13,19 @@ ok() { printf "  \033[32m✓\033[0m %s\n" "$1"; }
 
 echo "ログイン中: $(gh api user -q .login)（$REPO の Owner である必要があります）"
 
+# 招待には admin:org の権限が必要
+if [ $# -gt 0 ] && ! gh auth status 2>&1 | grep -q "admin:org"; then
+  echo "招待に必要な権限（admin:org）を追加します。ブラウザでコードを入力してください"
+  gh auth refresh -h github.com -s admin:org
+fi
+# ユーザー名が存在するか先に確認（GitHub のユーザー名は英数字とハイフンのみ。表示名ではない）
+for u in "$@"; do
+  if ! gh api "users/$u" >/dev/null 2>&1; then
+    echo "  ✗ GitHub ユーザー「$u」が見つかりません。プロフィールの URL（github.com/<ユーザー名>）の名前を確認してください"
+    exit 1
+  fi
+done
+
 echo "1. Organization の既定権限（メンバーは閲覧のみ・リポジトリ作成不可）"
 gh api -X PATCH "orgs/$ORG" -f default_repository_permission=read -F members_can_create_repositories=false >/dev/null
 ok "done"
