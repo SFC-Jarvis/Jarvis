@@ -30,10 +30,19 @@ if [ "$OS" = mac ]; then
   done
 else
   NEED=""
-  for f in git tmux curl unzip gh; do command -v "$f" >/dev/null || NEED="$NEED $f"; done
+  for f in git tmux curl unzip wget; do command -v "$f" >/dev/null || NEED="$NEED $f"; done
   if [ -n "$NEED" ]; then
-    echo "  apt でインストール:$NEED（sudo のパスワードを聞かれます）"
+    echo "  apt でインストール:$NEED（sudo のパスワードを聞かれます。入力しても画面には表示されません）"
     sudo apt-get update -qq && sudo apt-get install -y -qq $NEED build-essential
+  fi
+  if ! command -v gh >/dev/null; then
+    # GitHub CLI は公式の配布元から入れる（Ubuntu 標準のものは古いことがあるため）
+    echo "  GitHub CLI（gh）をインストール"
+    sudo mkdir -p -m 755 /etc/apt/keyrings
+    wget -qO- https://cli.github.com/packages/githubcli-archive-keyring.gpg | sudo tee /etc/apt/keyrings/githubcli-archive-keyring.gpg >/dev/null
+    sudo chmod go+r /etc/apt/keyrings/githubcli-archive-keyring.gpg
+    echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/githubcli-archive-keyring.gpg] https://cli.github.com/packages stable main" | sudo tee /etc/apt/sources.list.d/github-cli.list >/dev/null
+    sudo apt-get update -qq && sudo apt-get install -y -qq gh
   fi
   for f in git tmux gh; do ok "$f"; done
   if command -v uv >/dev/null; then ok "uv"; else
@@ -56,6 +65,15 @@ if [ "${NODE_MAJOR:-0}" -lt 24 ]; then
 fi
 ok "Node.js $(node -v)"
 
+# Linux・WSL: ~/.local/bin（uv・Claude Code の置き場所）を PATH に入れる
+if [ "$OS" != mac ] && ! grep -q 'HOME/.local/bin' "$HOME/.bashrc" 2>/dev/null; then
+  echo 'export PATH="$HOME/.local/bin:$PATH"' >> "$HOME/.bashrc"
+  ok "~/.bashrc に ~/.local/bin の PATH を追加（新しいターミナルから有効）"
+fi
+export PATH="$HOME/.local/bin:$PATH"
+
+# pnpm のダウンロード確認（[Y/n]）を出さない
+export COREPACK_ENABLE_DOWNLOAD_PROMPT=0
 if command -v pnpm >/dev/null; then ok "pnpm"; else
   corepack enable pnpm 2>/dev/null || npm install -g pnpm@10
   ok "pnpm をインストール"
