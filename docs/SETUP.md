@@ -40,9 +40,10 @@ cd Jarvis
 ```bash
 ./scripts/dev.sh --mock      # OpenClaw なしで画面を開く（http://localhost:3000）
 ```
-ターミナルは tmux に切り替わり、Claude Code のウィンドウが前面に出る（正常）。tmux の操作:
-- ウィンドウの切り替え: `Ctrl-b` → 数字
-- 抜ける: `Ctrl-b` → `d`
+ターミナルは tmux（画面を分ける道具）に切り替わり、Claude Code のウィンドウが前面に出る（正常）。
+**画面の一番下のバー**に、左はウィンドウの一覧（`0:web 1:tools 2:claude`、今いるウィンドウは色付き）、右は操作方法が常に出ている。
+- ウィンドウの切り替え: **`Ctrl-b` を押して離してから、番号のキー**（例: `Ctrl-b` → `0` で画面のログ、`Ctrl-b` → `2` で claude）。マウスでバーをクリックしても選べる
+- 開いたまま抜ける: `Ctrl-b` → `d` ／ 戻る: `./scripts/dev.sh`
 - 全部止める: `./scripts/dev.sh stop`
 
 ## 4. Claude Code で作業する
@@ -51,7 +52,7 @@ tmux の `claude` ウィンドウ（または `claude` コマンド）で:
 /start      今の期間のタスクを始める・再開する
 /done       作業の終わりに毎回（テスト→コミット→Push→Draft PR）
 ```
-詳しくは docs/WORKFLOW.md。
+詳しくは docs/WORKFLOW.md。自分の担当の作業と読む資料は **docs/members/<自分のID>.md**。
 
 ## 5. 部品ごとの準備（必要になったら）
 各担当者が、自分の部品の導入手順をここに追記する（QA-2-2）。

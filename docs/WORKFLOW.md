@@ -5,6 +5,16 @@
 - その代わり、作業ブランチはセッションの終わりに毎回 Push し、Draft PR を作成・更新する（/done）。
   他のメンバーは Draft PR で途中経過を見られる（main にはまだ入っていない）
 
+## 毎日の流れ
+1. ターミナル（Windows は Ubuntu）を開き、`cd ~/Jarvis && ./scripts/dev.sh --mock`（OpenClaw の準備後は `--mock` なし）
+2. tmux に切り替わり、claude のウィンドウが前面に出る。**画面の一番下のバー**に、ウィンドウの一覧（`0:web 1:tools 2:claude`）と操作方法が出る
+   - ウィンドウの切り替えは **`Ctrl-b` を押して離してから番号**（`Ctrl-b` → `0` で画面のログ、`Ctrl-b` → `2` で claude）。マウスでも選べる
+   - 開いたまま抜ける: `Ctrl-b` → `d` ／ 戻る: `./scripts/dev.sh`
+3. claude のウィンドウで `/start` → 計画を確認 → テストから実装
+4. 終わるときは `/done` → `./scripts/dev.sh stop`
+
+VS Code で作業する日は、`code .` で開いて VS Code のターミナルで `claude` → `/start`。サーバーは別のターミナルで `./scripts/dev.sh --no-claude`（`dev.sh` を 2 つ同時に起動しない）。
+
 ## 1 期間（2 週間）の流れ
 ```
 発表の翌日〜              期間中（各自のタイミング）                  発表の前日まで        発表後
