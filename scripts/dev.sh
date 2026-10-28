@@ -89,8 +89,16 @@ tset status-left-length 20
 tset status-left "#[bold] JARVIS #[nobold]| "
 tset window-status-format " #I:#W "
 tset window-status-current-format "#[bg=colour214,fg=colour16,bold] #I:#W "
-tset status-right-length 120
-tset status-right "Switch: press Ctrl-b, release, then number | Detach: Ctrl-b d | Stop: ./scripts/dev.sh stop "
+# 操作方法はバーの 2 行目に出す（縦長のモニターなど幅が狭くても切れないように）
+HELP="Switch: press Ctrl-b, release, then 0-9 | Detach: Ctrl-b d | Stop: ./scripts/dev.sh stop"
+if tmux set-option -t "$SESSION" status 2 2>/dev/null; then
+  tset status-right ""
+  tset 'status-format[1]' "#[align=left,bg=colour236,fg=colour252] $HELP"
+else
+  # 古い tmux（2.9 未満）は 1 行だけ。短い説明を右に出す
+  tset status-right-length 60
+  tset status-right " Ctrl-b 0-9: switch | Ctrl-b d: detach "
+fi
 
 if [ "$BROWSER" = 1 ]; then
   ( for _ in $(seq 1 30); do curl -fs -m 1 http://localhost:3000 >/dev/null 2>&1 && { open_url http://localhost:3000; break; }; sleep 1; done ) &
