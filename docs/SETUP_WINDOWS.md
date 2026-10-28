@@ -114,7 +114,8 @@ cd Jarvis
 | 表示 | すること |
 |---|---|
 | `[sudo] password for ...` | Ubuntu のパスワードを入力して Enter（画面には表示されない）。何も出ずに止まって見えるときは、apt の更新中なので 1〜2 分待つ |
-| `メンバー ID を入力 [A/B/C]` | 自分の ID（docs/PROJECT.md の体制表） |
+| `メンバー ID を入力 [A/B/C]` | 自分の担当の ID。未定なら README の A・B のページを読んでチームで決めてから入力する。「使用中」の ID は選べない |
+| `登録する PR を作りますか？` | Enter（Y）。自分のユーザー名を docs/schedule.json に書く PR が作られ、Owner が Approve すると確定する |
 | GitHub のログイン | 「GitHub.com」→「HTTPS」→「Login with a web browser」→ 表示されたコードを Windows のブラウザで入力 |
 
 `! OpenClaw が未インストール` と `! AivisSpeech ...` は、この時点では出ていてよい（必要になったら入れる）。

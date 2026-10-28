@@ -103,26 +103,56 @@ ok "pnpm / uv の依存をインストール"
 step "3. 環境変数"
 if [ -f .env.local ]; then ok ".env.local あり"; else cp .env.example .env.local; ok ".env.local を作成（OPENCLAW_GATEWAY_TOKEN は後で記入）"; fi
 
-step "4. あなたは誰？"
-mkdir -p .jarvis
-if [ -f .jarvis/member.json ]; then
-  ok "設定済み: $(node scripts/jarvis.mjs whoami)"
-else
-  echo "    C = Sota（統合・データとツール） / A = 音声 / B = 画面"
-  read -r -p "    メンバー ID を入力 [A/B/C]: " MID
-  MID=$(echo "$MID" | tr '[:lower:]' '[:upper:]')
-  case "$MID" in A|B|C) printf '{\n  "id": "%s"\n}\n' "$MID" > .jarvis/member.json ;; *) warn "A/B/C のどれかを入力してください"; exit 1 ;; esac
-  ok "$(node scripts/jarvis.mjs whoami)"
-fi
-
-step "5. GitHub"
+step "4. GitHub"
 if gh auth status >/dev/null 2>&1; then ok "gh ログイン済み（$(gh api user -q .login)）"; else gh auth login -h github.com -p https -w; fi
 GH_USER=$(gh api user -q .login)
-MID=$(node -e "console.log(require('./.jarvis/member.json').id)")
-REG=$(node -e "console.log(require('./docs/schedule.json').members['$MID']?.github||'')")
-if [ "$REG" != "$GH_USER" ]; then
-  warn "docs/schedule.json の members.$MID.github が「${REG:-未設定}」です。「$GH_USER」に直す PR を出してください"
+
+step "5. あなたの担当（メンバー ID）"
+# docs/schedule.json の members.<ID>.github に登録済みの ID は、ほかの人は選べない
+mkdir -p .jarvis
+owner_of() { node -e "console.log(require('./docs/schedule.json').members['$1']?.github||'')"; }
+MINE=$(node -e "const m=require('./docs/schedule.json').members;console.log(Object.keys(m).find(k=>m[k].github==='$GH_USER')||'')")
+if [ -n "$MINE" ]; then
+  printf '{\n  "id": "%s"\n}\n' "$MINE" > .jarvis/member.json
+  ok "GitHub の $GH_USER は $MINE として登録済み: $(node scripts/jarvis.mjs whoami)"
+elif [ -f .jarvis/member.json ] && [ -z "$(owner_of "$(node -e "console.log(require('./.jarvis/member.json').id)")")" ]; then
+  ok "設定済み（登録の PR がまだマージされていない）: $(node scripts/jarvis.mjs whoami)"
+else
+  echo "    担当がまだ決まっていなければ、README の「1. まず自分のページを開く」で A・B のページを読み、チームで相談して決めてから入力する"
+  for id in C A B; do
+    o=$(owner_of "$id")
+    case "$id" in C) area="統合・データとツール";; A) area="音声";; B) area="画面";; esac
+    if [ -n "$o" ]; then echo "      $id = $area（使用中: $o）"; else echo "      $id = $area（空き）"; fi
+  done
+  read -r -p "    メンバー ID を入力 [A/B/C]: " MID
+  MID=$(echo "$MID" | tr '[:lower:]' '[:upper:]')
+  case "$MID" in A|B|C) ;; *) warn "A/B/C のどれかを入力してください"; exit 1 ;; esac
+  TAKEN=$(owner_of "$MID")
+  if [ -n "$TAKEN" ] && [ "$TAKEN" != "$GH_USER" ]; then
+    warn "$MID はすでに $TAKEN が使っています。空いている ID を選んでください（間違いなら Owner に相談）"; exit 1
+  fi
+  printf '{\n  "id": "%s"\n}\n' "$MID" > .jarvis/member.json
+  ok "$(node scripts/jarvis.mjs whoami)"
+
+  # 担当の登録: docs/schedule.json に自分の GitHub ユーザー名を書いて PR を出す（Owner が Approve したら確定）
+  read -r -p "    $MID を自分の担当として登録する PR を作りますか？ [Y/n]: " YN
+  if [ "${YN:-Y}" != "n" ] && [ "${YN:-Y}" != "N" ]; then
+    BR="$(echo "$MID" | tr '[:upper:]' '[:lower:]')/register-$GH_USER"
+    git switch -q main && git pull -q --ff-only
+    git switch -q -c "$BR"
+    # 自分の行だけを書き換える（ほかの人の登録 PR と衝突しないように、ファイル全体は整形し直さない）
+    node -e "const f='docs/schedule.json',fs=require('fs');const t=fs.readFileSync(f,'utf8');const r=t.replace(/(\"$MID\": \{[^}]*\"github\": \")[^\"]*/,'\$1$GH_USER');if(r===t)process.exit(1);fs.writeFileSync(f,r)"
+    git commit -q -m "docs: $MID の担当を $GH_USER として登録" -- docs/schedule.json
+    git push -q -u origin "$BR"
+    gh pr create --base main --head "$BR" --title "docs: $MID の担当を $GH_USER として登録" \
+      --body "setup.sh から自動で作成。docs/schedule.json の members.$MID.github に自分のユーザー名を登録する。" >/dev/null
+    git switch -q main
+    ok "登録の PR を作成しました。Owner（Sota）が Approve してマージしたら確定します"
+  else
+    warn "後で docs/schedule.json の members.$MID.github に $GH_USER を書く PR を出してください"
+  fi
 fi
+
 git config --local pull.ff only
 git config --local push.autoSetupRemote true
 ok "git の設定（pull は fast-forward のみ）"

@@ -1,5 +1,5 @@
 {
-  "$comment": "発表日・休み・担当の唯一の情報源。scripts/jarvis.mjs とカスタムコマンドが読む。変更は PR で。",
+  "$comment": "発表日・休み・担当の唯一の情報源。scripts/jarvis.mjs とカスタムコマンドが読む。変更は PR で。members は A と B の行が隣り合わないように並べる（setup.sh の登録 PR が衝突しないため）",
   "timezone": "Asia/Tokyo",
   "holidays": ["2026-11-19", "2026-11-26", "2026-12-31"],
   "periods": [
@@ -19,8 +19,8 @@
     "qa": { "name": "品質保証", "owner": "all", "file": "docs/tasks/qa.md" }
   },
   "members": {
-    "C": { "name": "Sota", "github": "1110soda" },
     "A": { "name": "メンバーA", "github": "" },
+    "C": { "name": "Sota", "github": "1110soda" },
     "B": { "name": "メンバーB", "github": "" }
   }
 }
