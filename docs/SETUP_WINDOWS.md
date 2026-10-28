@@ -125,11 +125,12 @@ cd Jarvis
 ./scripts/dev.sh --mock
 ```
 - Windows のブラウザで http://localhost:3000 が開き、JARVIS のページが出れば OK
-- ターミナルは tmux（画面を分ける道具）に切り替わり、**Claude Code のウィンドウが前面に出る**。これで正常
-  - 画面の一番下に `0:web 1:tools 2:claude` などのウィンドウ一覧がある
-  - 切り替え: `Ctrl-b` を押して離してから数字 ／ 開いたまま抜ける: `Ctrl-b` → `d` ／ 戻る: `tmux attach -t jarvis`
+- ターミナルは tmux（画面を分ける道具）に切り替わり、Claude Code のウィンドウが前面に出る（正常）。
+  **画面の一番下のバー**に、左はウィンドウの一覧（`0:web 1:tools 2:claude`、今いるウィンドウは色付き）、右は操作方法が常に出ている。
+  - ウィンドウの切り替え: **`Ctrl-b` を押して離してから、番号のキー**（例: `Ctrl-b` → `0` で画面のログ、`Ctrl-b` → `2` で claude）。マウスでバーをクリックしても選べる
+  - 開いたまま抜ける: `Ctrl-b` → `d` ／ 戻る: `./scripts/dev.sh`
   - 全部止める: `./scripts/dev.sh stop`
-- 作業を始めるには、claude のウィンドウで `/start`（docs/WORKFLOW.md）
+- 作業を始めるには、claude のウィンドウで `/start`。自分の担当の作業と読む資料は **docs/members/<自分のID>.md**
 
 ## 8. VS Code で開く（WSL モード）
 ```bash

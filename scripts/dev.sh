@@ -80,13 +80,32 @@ if [ "$CLAUDE" = 1 ] && command -v claude >/dev/null; then
 else
   tmux new-window -t "$SESSION" -n shell -c "$ROOT"
 fi
-tmux set-option -t "$SESSION" mouse on >/dev/null
-tmux set-option -t "$SESSION" status-right " ウィンドウ切替: Ctrl-b → 数字 ／ 離脱: Ctrl-b d " >/dev/null
+# 画面下のバー: 左に今のウィンドウ一覧、右に操作方法を常に表示する
+# （文字化けしないよう、バーの中は英数字だけにする）
+tset() { tmux set-option -t "$SESSION" "$@" >/dev/null; }
+tset mouse on
+tset status-style "bg=colour24,fg=colour255"
+tset status-left-length 20
+tset status-left "#[bold] JARVIS #[nobold]| "
+tset window-status-format " #I:#W "
+tset window-status-current-format "#[bg=colour214,fg=colour16,bold] #I:#W "
+tset status-right-length 120
+tset status-right "Switch: press Ctrl-b, release, then number | Detach: Ctrl-b d | Stop: ./scripts/dev.sh stop "
 
 if [ "$BROWSER" = 1 ]; then
   ( for _ in $(seq 1 30); do curl -fs -m 1 http://localhost:3000 >/dev/null 2>&1 && { open_url http://localhost:3000; break; }; sleep 1; done ) &
 fi
 
-echo "tmux で開きます（Claude のウィンドウで /start）。終了: ./scripts/dev.sh stop"
+cat <<'MSG'
+
+  ── tmux（画面を分ける道具）で開きます ──
+  ・画面の一番下のバーに、ウィンドウの一覧（0:web 1:tools 2:claude ...）と操作方法が出ます
+  ・ウィンドウの切り替え: Ctrl-b を押して離してから、番号のキー
+      例) Ctrl-b → 0 で web（画面のログ）、Ctrl-b → 2 で claude。マウスでクリックしても選べる
+  ・開いたまま抜ける: Ctrl-b → d ／ 戻る: ./scripts/dev.sh ／ 止める: ./scripts/dev.sh stop
+  ・作業を始める: claude のウィンドウで /start
+
+MSG
+sleep 2
 tmux attach -t "$SESSION" || true
 remind

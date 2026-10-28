@@ -4,6 +4,7 @@
 今学期のゴールは **第 13 週（2027-01-14）に MVP 完成**。詳細は @docs/PROJECT.md
 
 ## 最初に必ず確認すること
+- メンバーごとの担当・読む資料・受け渡しは **docs/members/<メンバーID>.md**。作業の前にそのメンバーのページを読む
 - セッション開始時に `[JARVIS]` で始まる行（今の期間・あなた・未完了タスク）が表示される。表示がなければ `node scripts/jarvis.mjs context` を実行する
 - 作業は **今の期間の、そのメンバーのタスク**（docs/tasks/*.md）に限る。範囲外の改修や「ついでのリファクタ」はしない。必要なら提案だけする
 - 部品どうしのやりとりは contracts/ が正。勝手に変えない（変えるときは docs/WORKFLOW.md の「仕様の変更」に従う）
@@ -14,7 +15,7 @@
 |---|---|---|---|
 | `apps/web` | JARVIS の Web アプリ（チャット・承認カード・設定） | Next.js 16 / React 19 / TypeScript / Tailwind / Vitest | B |
 | `services/voice` | 音声層（発話検出→文字起こし→OpenClaw→読み上げ） | Python 3.12 / Pipecat / uv / pytest | A |
-| `services/tools` | タスク・予定ツール（MCP + 画面用 HTTP API、SQLite） | Python 3.12 / FastAPI / FastMCP / uv / pytest | C |
+| `services/tools` | タスク・予定ツール（MCP + 画面用 HTTP API、SQLite） | Python 3.12 / FastAPI / FastMCP / uv / pytest | C（画面用 API は A） |
 | `openclaw/` | OpenClaw の設定・エージェントの人格 | JSON5 / Markdown | C |
 | `contracts/` | 部品間の仕様（OpenAPI・イベント定義） | — | 全員で決める |
 | `docs/` | 計画・ルール・タスク（=進捗チェックリスト） | — | 全員 |

@@ -1,5 +1,7 @@
 # データとツール（★★★・主担当の目安: C）
 
+担当者のページ: [C](../members/C.md)（DT-4-2・DT-5-2 は [A](../members/A.md)、DT-7-1 は [B](../members/B.md)）
+
 タスク・予定を端末内の SQLite に保存し、OpenClaw 用の MCP ツールと画面用の API を作る（services/tools）。
 
 <!--

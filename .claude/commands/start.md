@@ -38,6 +38,7 @@ allowed-tools: Bash(node scripts/jarvis.mjs:*), Bash(git status:*), Bash(git log
    - `node scripts/jarvis.mjs branch <英語の短い内容>` でブランチ名を作り、`git switch -c <名前>` を実行する。
 5. **計画を立てる**（コードを書く前に必ず行う）
    - 次の資料を読む。
+     - `docs/members/<自分のID>.md`（担当・受け渡し・必要な技術）
      - 選んだタスクの完了条件
      - 関係するフォルダの CLAUDE.md
      - contracts/
