@@ -1,4 +1,4 @@
-"""SQLite への接続。テーブル設計は担当者が決める（docs/tasks/data-tools.md p2）。
+"""SQLite への接続。テーブル設計は担当者が決める（docs/tasks/data-tools.md DT-3-1）。
 
 暗号化（p6）を入れるときも、接続はこのモジュール経由に限定する。
 """

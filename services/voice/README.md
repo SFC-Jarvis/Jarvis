@@ -6,7 +6,7 @@ uv sync --extra runtime              # Pipecat などの重い依存（runtime e
 uv run --extra runtime python -m jarvis_voice
 ```
 
-## 音声認識の比較（VO-2-1）
+## 音声認識の比較（VO-3-1）
 同じ録音（10 文程度）で比べる。
 
 | 項目 | kotoba-whisper v2.0 | Qwen3-ASR |
@@ -16,6 +16,6 @@ uv run --extra runtime python -m jarvis_voice
 | メモリ | | |
 | 判定 | | |
 
-## 読み上げの声（VO-2-1）
+## 読み上げの声（VO-3-1）
 - AivisSpeech のモデル:
 - 選んだ理由:

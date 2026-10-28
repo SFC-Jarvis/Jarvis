@@ -1,6 +1,6 @@
 # services/tools（データとツール）
 
-担当: 主に C。画面用 HTTP API（DT-4-2）とブリーフ用まとめ（DT-5-2）は A。MCP ツールと HTTP API は同じリポジトリ層の関数を呼ぶ（処理を二重に書かない）。
+担当: 主に C。画面用 HTTP API（DT-4-3）とブリーフ用まとめ（DT-5-2）は A。MCP ツールと HTTP API は同じリポジトリ層の関数を呼ぶ（処理を二重に書かない）。
 
 - `api.py` が画面用 HTTP API と MCP（`/mcp`）をまとめた FastAPI アプリ。MCP ツールは `mcp_server.py`
 - DB 接続は `db.py` の `connect()` だけを使う（暗号化を後から入れるため）。SQL はリポジトリ層に閉じ込める

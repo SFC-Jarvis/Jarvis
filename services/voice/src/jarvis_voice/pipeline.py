@@ -7,4 +7,4 @@
 
 
 def build_pipeline() -> None:
-    raise NotImplementedError("p2〜p3 で音声担当が実装する")
+    raise NotImplementedError("VO-3-2〜VO-4-1 で音声担当が実装する")
