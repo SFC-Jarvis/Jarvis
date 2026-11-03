@@ -1,5 +1,5 @@
 ---
-description: 発表後、この期間の PR を Draft から外してレビューを依頼する
+description: 発表の後に使う。この期間の PR を「レビューしてください」の状態にして、他のメンバーに依頼する
 allowed-tools: Bash(node scripts/jarvis.mjs:*), Bash(pnpm check), Bash(pnpm format:*), Bash(git status:*), Bash(git fetch:*), Bash(git rebase:*), Bash(git log:*), Bash(git push -u origin HEAD), Bash(git push --force-with-lease:*), Bash(gh pr view:*), Bash(gh pr ready:*), Bash(gh pr edit:*), Bash(gh pr checks:*), Read
 ---
 

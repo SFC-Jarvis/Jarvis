@@ -1,5 +1,5 @@
 ---
-description: 他のメンバーの PR を確認し、レビューコメントの案を作る（Approve は人が行う）
+description: 他のメンバーの PR を確認して、コメントの案を作る（Approve は人が行う）
 argument-hint: "<PR番号>"
 allowed-tools: Bash(gh pr view:*), Bash(gh pr diff:*), Bash(gh pr checks:*), Bash(gh pr checkout:*), Bash(gh pr review --comment:*), Bash(pnpm check), Bash(pnpm install:*), Bash(uv sync:*), Bash(git switch:*), Bash(git status:*), Read, Grep, Glob
 ---

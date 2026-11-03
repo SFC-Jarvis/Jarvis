@@ -1,5 +1,5 @@
 ---
-description: 日付から今の期間を判定し、自分のタスクを始める（作業中なら再開する）
+description: 作業の始めに使う。今の期間のタスクを選び（途中なら続きから）、計画と手順のチェックリストを作る
 argument-hint: "[YYYY-MM-DD]（省略時は今日）"
 allowed-tools: Bash(node scripts/jarvis.mjs:*), Bash(git status:*), Bash(git log:*), Bash(git diff:*), Bash(git fetch:*), Bash(git switch:*), Bash(git pull --ff-only:*), Bash(git branch:*), Bash(gh pr list:*), Bash(gh pr view:*), Read, Grep, Glob
 ---
@@ -23,9 +23,10 @@ allowed-tools: Bash(node scripts/jarvis.mjs:*), Bash(git status:*), Bash(git log
 3. **再開の場合**
    - `gh pr view --json body,url` で PR 本文の「引き継ぎメモ」を読む。
    - `git log origin/main..HEAD --oneline` と `git status` で、どこまで進んだかを確認する。
-   - 次の 3 点を 5 行以内で示し、ユーザーの了承を得てから続ける。
+   - PR 本文の「手順の進み具合」を、CLAUDE.md「応答のしかた」の形でそのまま表示する（`[x]` は前回確かめた手順）。
+   - その下に次の 3 点を短く示し、ユーザーの了承を得てから続ける。
      - 前回までにできたこと
-     - 次にやること
+     - 次にやること（「← いまここ」の手順）
      - 未完了タスクの完了条件
 4. **開始の場合**
    - 未コミットの変更があれば、先に `/done` するか確認して止める。
@@ -49,7 +50,10 @@ allowed-tools: Bash(node scripts/jarvis.mjs:*), Bash(git status:*), Bash(git log
    - 次の形で計画を示し、了承を得る。
      - 変更するファイル
      - 先に書くテスト（何を確かめるか）
-     - 実装の順番
      - 完了条件をどう確かめるか
+     - **手順のチェックリスト**（CLAUDE.md「応答のしかた」の形。すべて `[ ]`）
+       - 1 つの手順は 1 回の確認で終わる大きさにする（例: 「テストを書いて失敗を確認」「実装してテストを通す」「`pnpm check` を通す」）
+       - ユーザーの作業が必要な手順には「あなたの番」と書く
 6. 了承後、**テスト → 実装 → `pnpm check`** の順に進める。
+   - 応答のたびに進み具合を先頭に出し、確かめられた手順だけ `[x]` にする。
    - 区切りのよいところで、`/done` でセッションを終えられることを伝える。
