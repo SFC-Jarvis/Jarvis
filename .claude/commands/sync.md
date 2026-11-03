@@ -1,5 +1,5 @@
 ---
-description: 最新の main を自分の作業ブランチに取り込む（衝突の解決を手伝う）
+description: main が更新されたときに使う。最新の main を自分のブランチに取り込む（ぶつかった箇所の解決も手伝う）
 allowed-tools: Bash(git status:*), Bash(git fetch:*), Bash(git rebase:*), Bash(git log:*), Bash(git diff:*), Bash(git add:*), Bash(git branch:*), Bash(git push --force-with-lease:*), Bash(pnpm check), Bash(pnpm install:*), Bash(uv sync:*), Bash(gh pr view:*), Bash(gh pr edit:*), Read, Edit
 ---
 

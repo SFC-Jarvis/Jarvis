@@ -1,5 +1,5 @@
 ---
-description: 作業セッションを終える（チェック→タスク更新→コミット→Push→Draft PR 作成・更新）
+description: 作業の終わりに毎回使う。チェック → タスクの完了を記録 → コミット → GitHub に送る → 途中経過の PR を作る・更新する
 allowed-tools: Bash(node scripts/jarvis.mjs:*), Bash(pnpm format:*), Bash(pnpm check), Bash(pnpm gen:contracts), Bash(uv run:*), Bash(git status:*), Bash(git diff:*), Bash(git log:*), Bash(git add:*), Bash(git commit:*), Bash(git push -u origin HEAD), Bash(git rev-parse:*), Bash(gh pr view:*), Bash(gh pr create:*), Bash(gh pr edit:*), Read, Edit, Write
 ---
 
@@ -21,6 +21,7 @@ allowed-tools: Bash(node scripts/jarvis.mjs:*), Bash(pnpm format:*), Bash(pnpm c
    - 時間内に直せない場合: 状況を説明し、「CI が落ちる WIP として Push するか」をユーザーに確認する。
 3. **タスクのチェックを更新する。**
    - このセッションで**完了条件を満たした**タスクだけを docs/tasks/<分野>.md で `[x]` にする。
+     - 目安: そのタスクの手順がすべて `[x]`（Claude が確かめ済み）になっていること。
    - どれを `[x]` にするかは、ユーザーに確認してから更新する。
 4. **コミットする。**
    - `git status` で、`.env*`・`*.db`・大きなファイルが含まれていないことを確認する。
@@ -37,7 +38,8 @@ allowed-tools: Bash(node scripts/jarvis.mjs:*), Bash(pnpm format:*), Bash(pnpm c
    - 既存の PR がある場合:
      - `gh pr edit --body-file <ファイル>` で本文を最新にする。
      - 引き継ぎメモは**今回の内容で上書きする**。
-7. **最後に次の 3 点を表示する。**
+7. **最後に次の 4 点を表示する。**
+   - タスクの進み具合（PR 本文に保存したものと同じチェックリスト）
    - PR の URL
    - 残っている未完了タスク
    - 発表まで残り何日か
@@ -51,6 +53,12 @@ allowed-tools: Bash(node scripts/jarvis.mjs:*), Bash(pnpm format:*), Bash(pnpm c
 - 期間: <ラベル>（発表 <日付>）／ 到達点: <到達点>
 - [x] <ID> <作業内容>（完了条件: ...）
 - [ ] <ID> <作業内容>（完了条件: ...）
+
+## 手順の進み具合
+<!-- CLAUDE.md「応答のしかた」のチェックリストをタスクごとにそのまま貼る。[x] は Claude が確かめた手順だけ。/start の再開時にここを読む -->
+### <ID> <作業内容>
+- [x] 1. <手順>（<確かめた方法>）
+- [ ] 2. <手順> ← いまここ
 
 ## 変更点
 - 

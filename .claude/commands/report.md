@@ -1,5 +1,5 @@
 ---
-description: 今の期間の成果を、進捗報告スライド作成用の Markdown で出力する（all で全員分）
+description: 発表の前に使う。今の期間の成果を、報告スライド用の文章で出す（all で全員分）
 argument-hint: "[all] [YYYY-MM-DD]"
 allowed-tools: Bash(node scripts/jarvis.mjs:*), Bash(git log:*), Bash(git diff:*), Bash(git fetch:*), Bash(gh pr list:*), Bash(gh pr view:*), Read
 ---
