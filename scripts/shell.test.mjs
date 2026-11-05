@@ -57,11 +57,26 @@ esac`,
   );
   fake('curl', 'exit 1');
   fake('sleep', 'exit 0');
-  fake('git', 'echo " M a.txt"');
+  // git は偽物にしない: Windows の Git Bash は自分の git を PATH の先頭に足すため、偽物が使われない
+  // 一時フォルダーを本物のリポジトリにする。中のファイルは未追跡なので「未コミットの変更あり」になる
+  // GIT_DIR などを消す: git のフックから動いたときに、開発中のリポジトリを触らないように
+  const gitEnv = { GIT_DIR: undefined, GIT_WORK_TREE: undefined, GIT_INDEX_FILE: undefined };
+  const init = spawnSync('git', ['init', '-q'], {
+    cwd: root,
+    encoding: 'utf8',
+    env: { ...process.env, ...gitEnv },
+  });
+  assert.equal(init.status, 0, init.stderr);
   const run = (args, env = {}) =>
     spawnSync('bash', [join(root, 'scripts/dev.sh'), ...args], {
       encoding: 'utf8',
-      env: { ...process.env, PATH: `${bin}:${process.env.PATH}`, FAKE_DIR: root, ...env },
+      env: {
+        ...process.env,
+        ...gitEnv,
+        PATH: `${bin}:${process.env.PATH}`,
+        FAKE_DIR: root,
+        ...env,
+      },
     });
   const log = () => readFileSync(join(root, 'tmux.log'), 'utf8');
   return { root, run, log, markRunning: () => writeFileSync(join(root, 'running'), '') };
@@ -72,8 +87,9 @@ test('dev.sh install で、別のフォルダーからも dev.sh で起動でき
   const binDir = join(root, 'localbin');
   const res = run(['install'], { JARVIS_BIN_DIR: binDir });
   assert.equal(res.status, 0, res.stderr);
-  const launched = spawnSync(join(binDir, 'dev.sh'), ['--help'], {
-    cwd: tmpdir(),
+  // bash から実行する: Windows の Node は #! で始まるファイルを直接実行できない
+  const launched = spawnSync('bash', ['-c', './dev.sh --help'], {
+    cwd: binDir,
     encoding: 'utf8',
   });
   assert.equal(launched.status, 0, launched.stderr);
