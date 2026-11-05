@@ -16,6 +16,7 @@
     "period": "node scripts/jarvis.mjs period",
     "tasks": "node scripts/jarvis.mjs tasks",
     "progress": "node scripts/jarvis.mjs progress",
+    "progress:web": "node scripts/progress-server.mjs",
     "test:scripts": "node --test scripts/*.test.mjs",
     "format": "biome check --write . && cd services/tools && uv run ruff format . && uv run ruff check --fix . && cd ../voice && uv run ruff format . && uv run ruff check --fix ."
   },

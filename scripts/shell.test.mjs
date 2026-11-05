@@ -18,3 +18,9 @@ test('シェルスクリプトで変数の直後に日本語を続けていな�
   }
   assert.deepEqual(bad, []);
 });
+
+test('dev.sh は進捗ページを最後に足し、claude を前面のままにする', () => {
+  const dev = readFileSync(join(ROOT, 'scripts/dev.sh'), 'utf8');
+  assert.match(dev, /tmux new-window -d -t "\$SESSION" -n progress/);
+  assert.ok(dev.indexOf('-n claude') < dev.indexOf('-n progress'));
+});

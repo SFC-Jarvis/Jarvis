@@ -4,6 +4,7 @@
 #   ./scripts/dev.sh --voice    音声サービスも起動
 #   ./scripts/dev.sh --mock     OpenClaw なしで画面を開発（JARVIS_MOCK=1）
 #   ./scripts/dev.sh --no-claude / --no-browser
+#   ./scripts/dev.sh --no-progress  進捗ページ（http://127.0.0.1:3100）を起動しない
 #   ./scripts/dev.sh status     周辺サービスの状態だけ確認
 #   ./scripts/dev.sh stop       すべて止める
 set -euo pipefail
@@ -11,15 +12,16 @@ cd "$(dirname "$0")/.."
 ROOT=$(pwd)
 SESSION=jarvis
 
-VOICE=0; MOCK=""; CLAUDE=1; BROWSER=1; CMD=start
+VOICE=0; MOCK=""; CLAUDE=1; BROWSER=1; PROGRESS=1; CMD=start
 for a in "$@"; do
   case "$a" in
     --voice) VOICE=1 ;;
     --mock) MOCK=1 ;;
     --no-claude) CLAUDE=0 ;;
     --no-browser) BROWSER=0 ;;
+    --no-progress) PROGRESS=0 ;;
     status|stop) CMD=$a ;;
-    -h|--help) sed -n '2,9p' "$0"; exit 0 ;;
+    -h|--help) sed -n '2,10p' "$0"; exit 0 ;;
     *) echo "不明なオプション: $a"; exit 1 ;;
   esac
 done
@@ -80,6 +82,11 @@ if [ "$CLAUDE" = 1 ] && command -v claude >/dev/null; then
 else
   tmux new-window -t "$SESSION" -n shell -c "$ROOT"
 fi
+# 進捗ページは最後に足して番号を変えない（-d で claude を前面のままにする）
+PROGRESS_URL="http://127.0.0.1:${JARVIS_PROGRESS_PORT:-3100}"
+if [ "$PROGRESS" = 1 ]; then
+  tmux new-window -d -t "$SESSION" -n progress -c "$ROOT" "bash -c \"$(run 'node scripts/progress-server.mjs'); exec bash\""
+fi
 # 画面下のバー: 左に今のウィンドウ一覧、右に操作方法を常に表示する
 tset() { tmux -u set-option -t "$SESSION" "$@" >/dev/null; }
 tset mouse on
@@ -103,7 +110,13 @@ else
 fi
 
 if [ "$BROWSER" = 1 ]; then
-  ( for _ in $(seq 1 30); do curl -fs -m 1 http://localhost:3000 >/dev/null 2>&1 && { open_url http://localhost:3000; break; }; sleep 1; done ) &
+  ( for _ in $(seq 1 30); do
+      curl -fs -m 1 http://localhost:3000 >/dev/null 2>&1 || { sleep 1; continue; }
+      # 進捗ページを先に開き、製品の画面を手前のタブにする
+      if [ "$PROGRESS" = 1 ] && curl -fs -m 1 "$PROGRESS_URL/health" >/dev/null 2>&1; then open_url "$PROGRESS_URL"; sleep 1; fi
+      open_url http://localhost:3000
+      break
+    done ) &
 fi
 
 cat <<'MSG'
