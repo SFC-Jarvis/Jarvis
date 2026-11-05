@@ -58,7 +58,17 @@ tmux の `claude` ウィンドウ（または `claude` コマンド）で:
 各担当者が、自分の部品の導入手順をここに追記する（QA-3-1）。
 
 ### OpenClaw（統合: C が記入）
-openclaw/README.md を参照。終わったら `.env.local` の `OPENCLAW_GATEWAY_TOKEN` を埋め、`JARVIS_MOCK=0` にする。
+画面や音声を本物の AI とつなぐときに必要（それまでは `--mock` で開発できる）。所要時間 20〜30 分。
+詳しい手順・画面での答え方・うまくいかないときは **[openclaw/README.md](../openclaw/README.md)**。流れだけ:
+
+1. Gemini の API キーを作る（https://aistudio.google.com/apikey）
+2. `curl -fsSL https://openclaw.ai/install.sh | bash` でインストール
+3. README のコマンドで `openclaw onboard`（待ち受けは 127.0.0.1・認証は token・エージェントは `jarvis` 1 つ）
+4. `openclaw models set google/gemini-3.5-flash-lite` と `openclaw config set gateway.http.endpoints.chatCompletions.enabled true`
+5. `openclaw gateway auth-token --show` の値を `.env.local` の `OPENCLAW_GATEWAY_TOKEN` に貼り、`JARVIS_MOCK=0` にする
+6. `node scripts/openclaw-check.mjs` で `OK` が出れば完了（3 往復して話が続くかを確かめる）
+
+トークンと API キーは、チャット・PR・スクリーンショットに出さない。
 
 ### Ollama（統合: C が記入）
 ```bash
