@@ -34,13 +34,12 @@
 ## 3. 毎日の流れ
 
 ```bash
-cd ~/Jarvis
-./scripts/dev.sh --mock     # 開発環境を開く（OpenClaw の準備ができたら --mock なし）
+dev.sh --mock     # 開発環境を開く。どのフォルダーからでも動く（OpenClaw の準備ができたら --mock なし）
 ```
 1. ターミナルが **tmux**（画面を分ける道具）に切り替わり、Claude Code のウィンドウが前面に出る
 2. **画面の一番下のバー**に、ウィンドウの一覧（`0:web 1:tools 2:claude`）と操作方法が出ている
    - ウィンドウを切り替えるときは **`Ctrl-b` を押して離してから番号**（例: `Ctrl-b` → `0` で画面のログ、`Ctrl-b` → `2` で claude）
-   - 開いたまま抜ける: `Ctrl-b` → `d` ／ 戻る: `./scripts/dev.sh` ／ 止める: `./scripts/dev.sh stop`
+   - 止める: `Ctrl-b` → `X`（大文字）→ `y` ／ 開いたまま抜ける: `Ctrl-b` → `d` ／ 戻る: `dev.sh`
 3. claude のウィンドウで **`/start`** → 今の期間の自分のタスクと前回の引き継ぎメモが出る → Claude の計画を確認して OK
 4. Claude に指示して開発する（テスト → 実装の順。画面は http://localhost:3000）
 5. 終わるときは必ず **`/done`**（テスト → コミット → Push → Draft PR の更新）

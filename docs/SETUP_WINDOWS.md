@@ -129,8 +129,8 @@ cd Jarvis
 - ターミナルは tmux（画面を分ける道具）に切り替わり、Claude Code のウィンドウが前面に出る（正常）。
   **画面の一番下のバー**に、左はウィンドウの一覧（`0:web 1:tools 2:claude`、今いるウィンドウは色付き）、その下の 2 行目に操作方法が常に出ている（幅の狭い画面でも切れない）。
   - ウィンドウの切り替え: **`Ctrl-b` を押して離してから、番号のキー**（例: `Ctrl-b` → `0` で画面のログ、`Ctrl-b` → `2` で claude）。マウスでバーをクリックしても選べる
-  - 開いたまま抜ける: `Ctrl-b` → `d` ／ 戻る: `./scripts/dev.sh`
-  - 全部止める: `./scripts/dev.sh stop`
+  - 全部止める: `Ctrl-b` → `X`（大文字）→ `y`（tmux の外からなら `dev.sh stop`）
+  - 開いたまま抜ける: `Ctrl-b` → `d` ／ 戻る: `dev.sh`（`setup.sh` が登録。未登録なら `./scripts/dev.sh install`）
 - 作業を始めるには、claude のウィンドウで `/start`。自分の担当の作業と読む資料は **docs/members/<自分のID>.md**
 
 ## 8. VS Code で開く（WSL モード）
