@@ -103,3 +103,27 @@ test('その他のエラーは OpenClaw のエラー文を添える', async () =
       /model not supported/.test(e.message),
   );
 });
+
+test('各往復のトークン数（usage）と所要時間を記録する', async () => {
+  let t = 0;
+  const clock = () => {
+    t += 500;
+    return t;
+  };
+  const fn = async () =>
+    new Response(
+      JSON.stringify({
+        choices: [{ message: { content: 'みかん' } }],
+        usage: { prompt_tokens: 9000, completion_tokens: 5, total_tokens: 9005 },
+      }),
+    );
+  const r = await runCheck(config, 'k', fn, clock);
+  assert.equal(r.turns[0].ms, 500);
+  assert.deepEqual(r.turns[0].usage, { prompt: 9000, completion: 5 });
+});
+
+test('usage がない返事でも動き、トークン数は null にする', async () => {
+  const r = await runCheck(config, 'k', fakeFetch(['はい', '2', 'みかん']).fn);
+  assert.equal(r.turns[0].usage, null);
+  assert.equal(r.remembered, true);
+});
