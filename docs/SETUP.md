@@ -59,7 +59,8 @@ tmux の `claude` ウィンドウ（または `claude` コマンド）で:
 
 ### OpenClaw（統合: C が記入）
 画面や音声を本物の AI とつなぐときに必要（それまでは `--mock` で開発できる）。所要時間 20〜30 分。
-詳しい手順・画面での答え方・うまくいかないときは **[openclaw/README.md](../openclaw/README.md)**。流れだけ:
+詳しい手順・画面での答え方・うまくいかないときは **[openclaw/README.md](../openclaw/README.md)**。
+Windows（WSL2）で Ollama を使うときは、README の「Windows（WSL2）で Ollama を使うとき」に従う（Gemini のキーはいらない）。Mac の流れ:
 
 1. Gemini の API キーを作る（https://aistudio.google.com/apikey）
 2. `curl -fsSL https://openclaw.ai/install.sh | bash` でインストール
@@ -71,10 +72,12 @@ tmux の `claude` ウィンドウ（または `claude` コマンド）で:
 トークンと API キーは、チャット・PR・スクリーンショットに出さない。
 
 ### Ollama（統合: C が記入）
+Windows（WSL2）は Windows 側にアプリ版を入れ、WSL2 の OpenClaw から `http://127.0.0.1:11434` でつなぐ（RTX 4070 で確認）。
 ```bash
-brew install ollama        # またはアプリ版
+brew install ollama        # Mac。Windows は https://ollama.com からアプリ版を入れる
 ollama serve               # アプリ版なら起動するだけ
-# 使うモデル名は INT-3-2 で決めて、ここに書く（ollama.com/library で正式な名前を確認）
+ollama pull qwen3.5:9b     # 使うモデル（6.6GB）。Windows ではアプリ版に付いてくる ollama を使う
+curl http://127.0.0.1:11434/api/tags   # qwen3.5:9b が出れば OK（WSL2 からも確かめる）
 ```
 
 ### AivisSpeech（音声: A が記入）
