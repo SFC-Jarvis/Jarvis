@@ -37,7 +37,7 @@ export function loadCheckConfig(env = process.env) {
   return { baseUrl, token };
 }
 
-/** 1 回分の発言を送り、返答の本文を返す。会話の履歴はセッションキーで OpenClaw 側が持つ */
+/** 1 回分の発言を送り、返答の本文とトークン数を返す。会話の履歴はセッションキーで OpenClaw 側が持つ */
 export async function ask(config, sessionKey, content, fetchFn = fetch) {
   let res;
   try {
@@ -77,13 +77,19 @@ export async function ask(config, sessionKey, content, fetchFn = fetch) {
   const data = await res.json();
   const answer = data.choices?.[0]?.message?.content;
   if (typeof answer !== 'string') throw new OpenClawCheckError('返答の形式が想定と違います');
-  return answer;
+  const u = data.usage;
+  const usage = u ? { prompt: u.prompt_tokens, completion: u.completion_tokens } : null;
+  return { answer, usage };
 }
 
-/** 3 往復して、最後の返答に最初の合言葉が含まれるか（=話が続いているか）を返す */
-export async function runCheck(config, sessionKey, fetchFn = fetch) {
+/** 3 往復して、最後の返答に最初の合言葉が含まれるか（=話が続いているか）を返す。往復ごとの時間とトークン数も記録する（INT-3-2） */
+export async function runCheck(config, sessionKey, fetchFn = fetch, now = () => performance.now()) {
   const turns = [];
-  for (const q of QUESTIONS) turns.push({ q, a: await ask(config, sessionKey, q, fetchFn) });
+  for (const q of QUESTIONS) {
+    const start = now();
+    const { answer, usage } = await ask(config, sessionKey, q, fetchFn);
+    turns.push({ q, a: answer, usage, ms: Math.round(now() - start) });
+  }
   return { turns, remembered: turns.at(-1).a.includes(SECRET_WORD) };
 }
 
@@ -95,7 +101,12 @@ async function main() {
   console.log(`セッションキー ${sessionKey} で 3 往復します（${config.baseUrl}）`);
   const r = await runCheck(config, sessionKey);
   for (const [i, t] of r.turns.entries()) {
-    console.log(`\n[${i + 1}] あなた: ${t.q}\n    JARVIS: ${t.a}`);
+    const tokens = t.usage
+      ? `入力 ${t.usage.prompt}・出力 ${t.usage.completion} トークン`
+      : 'トークン数なし';
+    console.log(
+      `\n[${i + 1}] あなた: ${t.q}\n    JARVIS: ${t.a}\n    （${(t.ms / 1000).toFixed(1)} 秒・${tokens}）`,
+    );
   }
   if (r.remembered) return console.log('\nOK: 3 往復目で最初の内容を覚えていました');
   console.error('\nNG: 3 往復目で最初の内容を覚えていません（セッションキーが効いていない可能性）');
