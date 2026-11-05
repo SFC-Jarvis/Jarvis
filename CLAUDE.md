@@ -45,7 +45,7 @@
 ポート: web 3000 / 進捗ページ 3100 / tools 8700 / voice 8710 / OpenClaw 18789 / Ollama 11434 / AivisSpeech 10101（すべて 127.0.0.1 のみ）
 
 ## よく使うコマンド
-- 開発環境を開く: `./scripts/dev.sh`（`--voice` で音声も起動）
+- 開発環境を開く: `dev.sh`（`--voice` で音声も起動。未登録なら `./scripts/dev.sh install`）／ 止める: tmux の中で `Ctrl-b` → `X` → `y`、外からは `dev.sh stop`
 - 全チェック（CI と同じ）: `pnpm check`
 - テストだけ: `pnpm test` ／ 画面だけ: `pnpm --filter @jarvis/web test`
 - Python: `cd services/tools && uv run pytest`
