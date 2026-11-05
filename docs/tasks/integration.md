@@ -22,9 +22,9 @@ ID の真ん中の数字は期間（p3 → INT-3-1）。終わったら [x] に�
 （統合の作業なし。環境構築は qa.md）
 
 ## p3 第3回（第7週）各部品が単体で動く
-- [ ] INT-3-1 [M] OpenClaw を導入し、OpenAI 互換 API（/v1/chat/completions）とトークン認証を有効にする。セッションキーで会話が続くか確かめる
+- [x] INT-3-1 [M] OpenClaw を導入し、OpenAI 互換 API（/v1/chat/completions）とトークン認証を有効にする。セッションキーで会話が続くか確かめる
   - 完了条件: 文字で 3 往復以上、話が続く。導入手順を openclaw/README.md と docs/SETUP.md に書いた
-- [ ] INT-3-2 [M] Ollama（Qwen3.5）と Gemini 無料枠を OpenClaw につなぎ、無料 AI の上限を測る
+- [x] INT-3-2 [M] Ollama（Qwen3.5）と Gemini 無料枠を OpenClaw につなぎ、無料 AI の上限を測る
   - 完了条件: 両方で返答が返り、上限の実測値を openclaw/README.md に記録した
 
 ## p4 第4回（第9週）画面と声で会話し、タスクと予定を管理できる
