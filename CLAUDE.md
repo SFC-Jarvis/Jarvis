@@ -42,7 +42,7 @@
 
 開発環境: macOS または Windows の WSL2（Ubuntu）。スクリプトは bash。OS ごとの違いは config とスクリプトに閉じ込める（docs/CODING_RULES.md「OS の違い」）
 
-ポート: web 3000 / tools 8700 / voice 8710 / OpenClaw 18789 / Ollama 11434 / AivisSpeech 10101（すべて 127.0.0.1 のみ）
+ポート: web 3000 / 進捗ページ 3100 / tools 8700 / voice 8710 / OpenClaw 18789 / Ollama 11434 / AivisSpeech 10101（すべて 127.0.0.1 のみ）
 
 ## よく使うコマンド
 - 開発環境を開く: `./scripts/dev.sh`（`--voice` で音声も起動）
@@ -52,6 +52,7 @@
 - 整形: `pnpm format`
 - tools の API を変えたら: `pnpm gen:contracts`（contracts/tools-api.json と画面の型を再生成）
 - 進捗表: `pnpm progress` ／ 自分のタスク: `pnpm tasks`
+- 進捗ページ: http://127.0.0.1:3100（`dev.sh` が別タブで開く。単独なら `pnpm progress:web`。未マージの PR の完了分も出る）
 
 ## カスタムコマンド
 | コマンド | いつ使う | 何をする |
