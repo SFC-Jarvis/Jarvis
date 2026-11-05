@@ -6,7 +6,8 @@
 #   ./scripts/dev.sh --no-claude / --no-browser
 #   ./scripts/dev.sh --no-progress  進捗ページ（http://127.0.0.1:3100）を起動しない
 #   ./scripts/dev.sh status     周辺サービスの状態だけ確認
-#   ./scripts/dev.sh stop       すべて止める
+#   ./scripts/dev.sh stop       すべて止める（tmux の中なら Ctrl-b → X → y）
+#   ./scripts/dev.sh install    どのフォルダーからでも dev.sh だけで起動できるようにする
 set -euo pipefail
 cd "$(dirname "$0")/.."
 ROOT=$(pwd)
@@ -20,7 +21,7 @@ for a in "$@"; do
     --no-claude) CLAUDE=0 ;;
     --no-browser) BROWSER=0 ;;
     --no-progress) PROGRESS=0 ;;
-    status|stop) CMD=$a ;;
+    status|stop|install) CMD=$a ;;
     -h|--help) sed -n '2,10p' "$0"; exit 0 ;;
     *) echo "不明なオプション: $a"; exit 1 ;;
   esac
@@ -33,6 +34,29 @@ open_url() {
   else xdg-open "$1" >/dev/null 2>&1 || echo "ブラウザで $1 を開いてください"; fi
 }
 IS_WSL=0; grep -qi microsoft /proc/version 2>/dev/null && IS_WSL=1
+
+# ~/.local/bin などに起動用の小さなファイルを置く
+# シンボリックリンクにしない: 実体のパスで dev.sh を呼ぶので、古い dev.sh のブランチでも動く
+LAUNCHER_MARK="jarvis-dev-launcher"
+install_launcher() {
+  local dir="${JARVIS_BIN_DIR:-$HOME/.local/bin}" target
+  target="$dir/dev.sh"
+  if [ -e "$target" ] && ! grep -q "$LAUNCHER_MARK" "$target" 2>/dev/null; then
+    echo "$target は別のファイルです。上書きしないので、中身を確かめてから消してください"
+    return 1
+  fi
+  mkdir -p "$dir"
+  printf '#!/usr/bin/env bash\n# %s（scripts/dev.sh install が作成。消しても開発環境に影響なし）\nexec %q "$@"\n' \
+    "$LAUNCHER_MARK" "$ROOT/scripts/dev.sh" > "$target"
+  chmod +x "$target"
+  echo "dev.sh だけで起動できるようにしました: $target"
+  case ":$PATH:" in
+    *":$dir:"*) ;;
+    *) echo "  ただし $dir が PATH（コマンドを探す場所）にありません。次の行を ~/.bashrc か ~/.zshrc に足してください:"
+       printf '  export PATH="%s:$PATH"\n' "$dir" ;;
+  esac
+}
+[ "$CMD" = install ] && { install_launcher; exit $?; }
 
 [ -f .env.local ] || { echo ".env.local がありません。先に ./scripts/setup.sh を実行してください"; exit 1; }
 set -a; source .env.local; set +a
@@ -64,9 +88,48 @@ command -v tmux >/dev/null || { echo "tmux がありません: brew install tmux
 [ -d node_modules ] || pnpm install
 status
 
+# 画面下のバーと、停止用のキー（Ctrl-b → X）を設定する
+decorate() {
+  tset() { tmux -u set-option -t "$SESSION" "$@" >/dev/null; }
+  # キーの登録は tmux 全体で共有されるので、jarvis セッションの中でだけ効くようにする
+  tmux -u bind-key X if-shell -F "#{==:#{session_name},$SESSION}" "confirm-before -p '開発環境をすべて止めますか？ (y/n)' kill-session"
+  tset mouse on
+  tset status-style "bg=colour24,fg=colour255"
+  tset status-left-length 20
+  tset status-left "#[bold] JARVIS #[nobold]| "
+  tset window-status-format " #I:#W "
+  tset window-status-current-format "#[bg=colour214,fg=colour16,bold] #I:#W "
+  # 操作方法はバーの 2 行目に出す（縦長のモニターなど幅が狭くても切れないように）
+  # tmux は -u で UTF-8 を強制しているので、日本語で表示する
+  local help="ウィンドウ切替: Ctrl-b を押して離してから番号（0〜9） ｜ 抜ける: Ctrl-b → d ｜ 止める: Ctrl-b → X（大文字）→ y"
+  if tmux -u set-option -t "$SESSION" status 2 2>/dev/null; then
+    # セッションに status-format を設定すると 1 行目の既定も消えるため、既定の 1 行目を写してから 2 行目を足す
+    tset 'status-format[0]' "$(tmux show-options -gv 'status-format[0]')"
+    tset status-right ""
+    tset 'status-format[1]' "#[align=left,bg=colour236,fg=colour252] $help"
+  else
+    # 古い tmux（2.9 未満）は 1 行だけ。短い説明を右に出す
+    tset status-right-length 80
+    tset status-right " 切替: Ctrl-b → 番号 ｜ 抜ける: Ctrl-b → d ｜ 止める: Ctrl-b → X "
+  fi
+}
+
+# tmux に入り、出てきたら「止めたのか、抜けただけか」を伝える
+attach_session() {
+  tmux -u attach -t "$SESSION" || true
+  if tmux has-session -t "$SESSION" 2>/dev/null; then
+    echo "開いたまま抜けました（戻る: dev.sh ／ 止める: dev.sh stop）"
+  else
+    echo "停止しました"
+  fi
+  remind
+}
+
 if tmux has-session -t "$SESSION" 2>/dev/null; then
-  echo "すでに起動中です。接続します（止めるには ./scripts/dev.sh stop）"
-  exec tmux -u attach -t "$SESSION"
+  echo "すでに起動中です。接続します（止めるには Ctrl-b → X → y）"
+  decorate || true  # 設定に失敗しても、接続はできるようにする
+  attach_session
+  exit 0
 fi
 
 # 各ウィンドウで .env.local を読み込んでから実行する
@@ -87,27 +150,7 @@ PROGRESS_URL="http://127.0.0.1:${JARVIS_PROGRESS_PORT:-3100}"
 if [ "$PROGRESS" = 1 ]; then
   tmux new-window -d -t "$SESSION" -n progress -c "$ROOT" "bash -c \"$(run 'node scripts/progress-server.mjs'); exec bash\""
 fi
-# 画面下のバー: 左に今のウィンドウ一覧、右に操作方法を常に表示する
-tset() { tmux -u set-option -t "$SESSION" "$@" >/dev/null; }
-tset mouse on
-tset status-style "bg=colour24,fg=colour255"
-tset status-left-length 20
-tset status-left "#[bold] JARVIS #[nobold]| "
-tset window-status-format " #I:#W "
-tset window-status-current-format "#[bg=colour214,fg=colour16,bold] #I:#W "
-# 操作方法はバーの 2 行目に出す（縦長のモニターなど幅が狭くても切れないように）
-# tmux は -u で UTF-8 を強制しているので、日本語で表示する
-HELP="ウィンドウ切替: Ctrl-b を押して離してから番号（0〜9） ｜ 抜ける: Ctrl-b → d ｜ 止める: ./scripts/dev.sh stop"
-if tmux -u set-option -t "$SESSION" status 2 2>/dev/null; then
-  # セッションに status-format を設定すると 1 行目の既定も消えるため、既定の 1 行目を写してから 2 行目を足す
-  tset 'status-format[0]' "$(tmux show-options -gv 'status-format[0]')"
-  tset status-right ""
-  tset 'status-format[1]' "#[align=left,bg=colour236,fg=colour252] $HELP"
-else
-  # 古い tmux（2.9 未満）は 1 行だけ。短い説明を右に出す
-  tset status-right-length 80
-  tset status-right " 切替: Ctrl-b → 番号 ｜ 抜ける: Ctrl-b → d "
-fi
+decorate
 
 if [ "$BROWSER" = 1 ]; then
   ( for _ in $(seq 1 30); do
@@ -125,10 +168,9 @@ cat <<'MSG'
   ・画面の一番下のバーに、ウィンドウの一覧（0:web 1:tools 2:claude ...）と操作方法が出ます
   ・ウィンドウの切り替え: Ctrl-b を押して離してから、番号のキー
       例) Ctrl-b → 0 で web（画面のログ）、Ctrl-b → 2 で claude。マウスでクリックしても選べる
-  ・開いたまま抜ける: Ctrl-b → d ／ 戻る: ./scripts/dev.sh ／ 止める: ./scripts/dev.sh stop
+  ・止める: Ctrl-b → X（大文字）→ y ／ 開いたまま抜ける: Ctrl-b → d ／ 戻る: dev.sh
   ・作業を始める: claude のウィンドウで /start
 
 MSG
 sleep 2
-tmux -u attach -t "$SESSION" || true
-remind
+attach_session

@@ -157,7 +157,10 @@ git config --local pull.ff only
 git config --local push.autoSetupRemote true
 ok "git の設定（pull は fast-forward のみ）"
 
+./scripts/dev.sh install
+ok "dev.sh コマンドの登録"
+
 step "完了"
-echo "  開発環境を開く: ./scripts/dev.sh"
+echo "  開発環境を開く: dev.sh（止める: tmux の中で Ctrl-b → X → y）"
 echo "  作業を始める:   claude を起動して /start"
 echo "  詳しい手順:     docs/SETUP.md"
