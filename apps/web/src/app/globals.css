@@ -1,1 +1,40 @@
 @import "tailwindcss";
+
+/* 案 2（コア）の背景: ほぼ黒に、薄い光と方眼 */
+.jv-backdrop {
+  background-color: #04060a;
+  background-image:
+    radial-gradient(circle at 42% 40%, rgb(56 189 248 / 0.1), transparent 55%),
+    linear-gradient(rgb(148 163 184 / 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgb(148 163 184 / 0.04) 1px, transparent 1px);
+  background-size:
+    auto,
+    48px 48px,
+    48px 48px;
+}
+
+/* コアの周りのリングをゆっくり回す */
+@keyframes jv-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.jv-spin-slow,
+.jv-spin-reverse {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: jv-spin 80s linear infinite;
+}
+
+.jv-spin-reverse {
+  animation-duration: 40s;
+  animation-direction: reverse;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jv-spin-slow,
+  .jv-spin-reverse {
+    animation: none;
+  }
+}
