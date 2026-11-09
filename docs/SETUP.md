@@ -57,6 +57,58 @@ tmux の `claude` ウィンドウ（または `claude` コマンド）で:
 ## 5. 部品ごとの準備（必要になったら）
 各担当者が、自分の部品の導入手順をここに追記する（QA-3-1）。
 
+### 画面（apps/web）（画面: B が記入）
+JARVIS の画面（真ん中の粒子の球体・字幕・右の会話の記録・入力欄）。設計は docs/design/chat-screen.md。
+
+**追加で入れるもの**: なし（`setup.sh` で済む）。OpenClaw がなくても、モック（固定の返答）で動かせる。
+
+**起動する**
+```bash
+dev.sh --mock               # いつもはこれ。OpenClaw なしで http://localhost:3000 が開く
+```
+画面だけを起動したいとき（リポジトリの一番上のフォルダで）:
+```bash
+set -a; source .env.local; set +a          # .env.local を読み込む（これを忘れるとモックにならない）
+JARVIS_MOCK=1 pnpm --filter @jarvis/web dev
+```
+- `pnpm --filter @jarvis/web dev` だけで起動すると、リポジトリの一番上の `.env.local` が読まれない（Next.js は `apps/web/` の中しか見ない）。モックにならず、送信すると「返答を受け取れませんでした」になる
+- Windows（WSL）の人も、開くのは Windows 側のブラウザでよい（http://localhost:3000）
+
+**設定（`.env.local`）**
+| 名前 | 意味 | 既定 |
+|---|---|---|
+| `JARVIS_MOCK` | `1` で OpenClaw なしの固定の返答。`dev.sh --mock` なら `1` になる | `1` |
+| `JARVIS_MOCK_DELAY_MS` | モックの返答までの待ち時間（ミリ秒）。「考えています」の表示を確かめるため。`0` で待たない | `1500` |
+| `OPENCLAW_BASE_URL`・`OPENCLAW_GATEWAY_TOKEN` | 本物の OpenClaw につなぐとき（下の「OpenClaw」の節） | — |
+
+`.env.local` を変えたら、起動し直す（`dev.sh stop` → `dev.sh --mock`）。
+
+**動いたことを確かめる**
+1. http://localhost:3000 を開くと、真ん中で粒子の球体がゆっくり回り、下に `STANDBY` と出る
+2. 「今日の予定は？」を押して Enter → 球体が速く回って `THINKING`（約 1.5 秒）→ 字幕に「（モック）「今日の予定は？」を受け取りました」→ 球体が波打って `SPEAKING` → 6 秒ほどで `STANDBY` に戻る
+3. 右上の「＋」で新しい会話になり、前の会話が右の列に残る
+
+ターミナルから確かめるとき（返答が 1 行出れば OK）:
+```bash
+curl -s -X POST http://127.0.0.1:3000/api/chat -H 'Content-Type: application/json' \
+  -d '{"messages":[{"role":"user","content":"こんにちは"}],"sessionKey":"web:test"}'
+# → {"reply":"（モック）「こんにちは」を受け取りました"}
+```
+
+**テスト**
+```bash
+pnpm --filter @jarvis/web test     # 画面のテストだけ（ブラウザは使わない）
+```
+
+**うまくいかないとき**
+| 症状 | 原因と直し方 |
+|---|---|
+| 送ると「返答を受け取れませんでした」 | モックになっていない（`.env.local` を読み込まずに起動した、または `JARVIS_MOCK=0`）。`dev.sh --mock` で起動し直す。本物の OpenClaw を使うときは `dev.sh status` で OpenClaw が起動中か見る。原因はブラウザの開発者ツールのコンソールに出る |
+| 球体が出ない（リングだけ見える） | ブラウザのハードウェアアクセラレーション（グラフィック処理を GPU に任せる設定）が切れている。Chrome なら 設定 → システム →「グラフィック アクセラレーションが使用可能な場合は使用する」をオン |
+| 球体が止まっている | PC の「動きを減らす」設定がオンだと、わざと止めて表示する（仕様）。macOS: システム設定 → アクセシビリティ → ディスプレイ →「視差効果を減らす」、Windows: 設定 → アクセシビリティ → 視覚効果 →「アニメーション効果」 |
+| `Another next dev server is already running.` と出る | 画面はすでに別のところ（`dev.sh` の tmux など）で動いている。表示された URL をそのまま開けばよい。起動し直したいときは `dev.sh stop` で止めてから起動する |
+| `Port 3000 is in use` と出る | 別の `dev.sh` か画面が動いている。`dev.sh stop` で止める。止まらなければ `lsof -iTCP:3000 -sTCP:LISTEN` で動いているものを確かめる |
+
 ### OpenClaw（統合: C が記入）
 画面や音声を本物の AI とつなぐときに必要（それまでは `--mock` で開発できる）。所要時間 20〜30 分。
 詳しい手順・画面での答え方・うまくいかないときは **[openclaw/README.md](../openclaw/README.md)**。
