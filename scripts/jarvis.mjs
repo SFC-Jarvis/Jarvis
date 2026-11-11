@@ -42,6 +42,8 @@ export function currentMember(root = ROOT, env = process.env) {
 const TASK_RE = /^- \[( |x|X|~)\] (\S+) \[(S|M|L|-)\] (.+?)(?:\s+@([A-Za-z]+))?\s*$/;
 const DONE_RE = /^\s+- 完了条件[:：]\s*(.+)$/;
 const REMAIN_RE = /^\s+- 残り[:：]\s*(.+)$/;
+// タスクに見える行（チェック欄のあとに ID が続く）。TASK_RE に合わなければ読めない行として警告する
+const LOOKS_LIKE_TASK_RE = /^\s*- \[[^\]]*\]\s*[A-Z]+-\d/;
 
 /**
  * docs/tasks/*.md を読んで [{area, period, id, size, title, owner, done, partial, condition, remaining}] を返す。
@@ -78,6 +80,30 @@ export function parseTasks(text, area, defaultOwner) {
     if (r && tasks.length) tasks.at(-1).remaining = r[1];
   }
   return tasks;
+}
+
+/** タスクに見えるのに読めない行（書式の誤り・期間の見出しより前）を [{line, text}] で返す */
+export function findMalformedTasks(text) {
+  const out = [];
+  let period = null;
+  text.split('\n').forEach((line, i) => {
+    if (/^## (p\d+|final)\b/.test(line)) period = true;
+    if (!LOOKS_LIKE_TASK_RE.test(line)) return;
+    if (!TASK_RE.test(line) || !period) out.push({ line: i + 1, text: line.trim() });
+  });
+  return out;
+}
+
+/** docs/tasks/*.md の読めない行を、画面に出す警告の文にして返す */
+export function loadTaskWarnings(schedule, root = ROOT) {
+  return Object.values(schedule.areas).flatMap((a) => {
+    const f = join(root, a.file);
+    if (!existsSync(f)) return [];
+    return findMalformedTasks(readFileSync(f, 'utf8')).map(
+      (m) =>
+        `${a.file} の ${m.line} 行目をタスクとして読めません（書式を確認してください）: ${m.text}`,
+    );
+  });
 }
 
 export function loadTasks(schedule, root = ROOT) {
@@ -203,6 +229,7 @@ function main(argv) {
         const mark = id === findPeriod(s, date).id ? ' ◀ 今' : '';
         console.log(`| ${per.label}${mark} | ${cells.join(' | ')} | ${progressCell(ts)} |`);
       }
+      for (const w of loadTaskWarnings(s)) console.log(`\n注意: ${w}`);
       return;
     }
     case 'context': {
@@ -217,6 +244,7 @@ function main(argv) {
         `[JARVIS] ブランチ: ${branch || '不明'}（未コミット ${dirty} 件）`,
         `[JARVIS] 未完了タスク ${open.length}/${mine.length} 件${open.some((t) => t.partial) ? `（うち部分的に完了 ${open.filter((t) => t.partial).length} 件）` : ''}`,
       ];
+      lines.push(...loadTaskWarnings(s).map((w) => `[JARVIS] 注意: ${w}`));
       if (!o.brief) lines.push(...mine.map((t) => fmtTask(t, s)));
       console.log(lines.join('\n'));
       return;

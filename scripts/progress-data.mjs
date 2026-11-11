@@ -2,7 +2,15 @@
 // 今いるブランチに左右されないように、origin/main と各 PR の先頭コミットからタスクを読む。
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
-import { daysUntil, findPeriod, isMine, parseTasks, ROOT, today } from './jarvis.mjs';
+import {
+  daysUntil,
+  findMalformedTasks,
+  findPeriod,
+  isMine,
+  parseTasks,
+  ROOT,
+  today,
+} from './jarvis.mjs';
 
 const execFileAsync = promisify(execFile);
 const OID_RE = /^[0-9a-f]{40}$/;
@@ -105,16 +113,22 @@ async function readTasksAt(schedule, ref, run) {
   const results = await Promise.all(
     Object.entries(schedule.areas).map(async ([key, area]) => {
       try {
-        return {
-          ok: true,
-          tasks: parseTasks(await run('git', ['show', `${ref}:${area.file}`]), key, area.owner),
-        };
+        const text = await run('git', ['show', `${ref}:${area.file}`]);
+        const malformed = findMalformedTasks(text).map(
+          (m) =>
+            `${area.file} の ${m.line} 行目をタスクとして読めません（書式を確認してください）: ${m.text}`,
+        );
+        return { ok: true, tasks: parseTasks(text, key, area.owner), malformed };
       } catch {
-        return { ok: false, tasks: [] };
+        return { ok: false, tasks: [], malformed: [] };
       }
     }),
   );
-  return { readable: results.some((r) => r.ok), tasks: results.flatMap((r) => r.tasks) };
+  return {
+    readable: results.some((r) => r.ok),
+    tasks: results.flatMap((r) => r.tasks),
+    malformed: results.flatMap((r) => r.malformed),
+  };
 }
 
 async function loadOpenPrs(schedule, run, warnings) {
@@ -156,6 +170,7 @@ async function loadOpenPrs(schedule, run, warnings) {
         ? await readTasksAt(schedule, pr.headRefOid, run)
         : { readable: false, tasks: [] };
       if (!read.readable) warnings.push(`#${pr.number} のタスクを読めませんでした`);
+      for (const w of read.malformed ?? []) warnings.push(`#${pr.number}: ${w}`);
       return { ...shape, tasks: read.tasks };
     }),
   );
@@ -171,7 +186,8 @@ export async function collectProgress({ run = runCommand, date, now = () => new 
     warnings.push('最新の情報を取得できなかったので、前回取得した内容で表示しています');
   }
   const schedule = JSON.parse(await run('git', ['show', 'origin/main:docs/schedule.json']));
-  const { tasks: mainTasks } = await readTasksAt(schedule, 'origin/main', run);
+  const { tasks: mainTasks, malformed } = await readTasksAt(schedule, 'origin/main', run);
+  warnings.push(...malformed.map((w) => `main: ${w}`));
   const prs = await loadOpenPrs(schedule, run, warnings);
   return buildProgress({
     schedule,
