@@ -239,3 +239,22 @@ test('集計に部分的に完了の件数を含める', () => {
   assert.equal(p.overall.partial, 1);
   assert.equal(p.overall.merged, 1);
 });
+
+test('main のタスクファイルに読めない行があれば警告を出す', async () => {
+  const files = {
+    ...baseFiles,
+    'origin/main:docs/tasks/integration.md': '## p3 第3回\n- [?] X-1 [M] 作る\n',
+  };
+  const p = await collectProgress({ run: fakeRun(files, []), ...clock });
+  assert.equal(p.warnings.length, 1);
+  assert.match(p.warnings[0], /^main: docs\/tasks\/integration\.md の 2 行目/);
+});
+
+test('PR のタスクファイルに読めない行があれば、PR 番号つきで警告を出す', async () => {
+  const files = {
+    ...baseFiles,
+    [`${OID}:docs/tasks/integration.md`]: '## p3 第3回\n- [x] X-1 作る\n',
+  };
+  const p = await collectProgress({ run: fakeRun(files, [ghPr]), ...clock });
+  assert.match(p.warnings[0], /^#11: docs\/tasks\/integration\.md の 2 行目/);
+});

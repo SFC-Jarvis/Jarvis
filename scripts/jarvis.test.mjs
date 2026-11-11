@@ -2,11 +2,13 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
   daysUntil,
+  findMalformedTasks,
   findPeriod,
   fmtTask,
   isMine,
   loadSchedule,
   loadTasks,
+  loadTaskWarnings,
   parseTasks,
   progressCell,
 } from './jarvis.mjs';
@@ -102,4 +104,32 @@ test('進捗表のセルに部分的に完了の件数を添える', () => {
   assert.equal(progressCell([{ done: true }, { partial: true }, {}]), '1/3（部分 1）');
   assert.equal(progressCell([{ done: true }, {}]), '1/2');
   assert.equal(progressCell([]), '—');
+});
+
+test('タスクに見えるのに書式が違う行を、行番号つきで見つける', () => {
+  const md = [
+    '## p3 第3回',
+    '- [x] X-1 [M] 正しい行',
+    '- [?] X-2 [M] 知らない印',
+    '- [ ] X-3 作る（規模がない）',
+    '  - [x] X-4 [S] 字下げされている',
+    '  - 完了条件: これはタスクではない',
+    '- 普通の箇条書き',
+  ].join('\n');
+  assert.deepEqual(
+    findMalformedTasks(md).map((m) => m.line),
+    [3, 4, 5],
+  );
+});
+
+test('期間の見出しより前にあるタスクも、読めない行として見つける', () => {
+  const md = ['- [ ] X-1 [M] 見出しの前', '## p3 第3回', '- [ ] X-2 [M] 正しい行'].join('\n');
+  assert.deepEqual(
+    findMalformedTasks(md).map((m) => m.line),
+    [1],
+  );
+});
+
+test('docs/tasks に、タスクとして読めない行がない', () => {
+  assert.deepEqual(loadTaskWarnings(s), []);
 });
