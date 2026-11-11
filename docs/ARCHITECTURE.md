@@ -33,7 +33,7 @@ OpenClaw 自体の承認機能は Control UI 向けのため使わない。**承
 変更系ツールは実行せずに `pending_id` を返す → 画面が承認カードを出す → `POST /approvals/{id}` で実行。
 
 ## データ設計・ツール仕様
-DT-3-1 の仕様案（2026-11-05・全員で確認中）。実装は DT-4-1・DT-4-2（MCP）、DT-4-3（画面用 HTTP API）、DT-5-1（承認）。
+DT-3-1 の仕様案（2026-11-05・全員で確認中）。実装は DT-4-1・DT-5-1（MCP）、DT-5-2（画面用 HTTP API）、DT-6-1（承認）。
 
 ### 決めごと
 | 項目 | 決めたこと | 理由 |
@@ -80,7 +80,7 @@ CREATE TABLE events (
 );
 CREATE INDEX events_start ON events (start_at);
 
--- 承認待ち（DT-5-1 で使う。形だけ先に決める）
+-- 承認待ち（DT-6-1 で使う。形だけ先に決める）
 CREATE TABLE pending_actions (
   id          INTEGER PRIMARY KEY,
   action      TEXT NOT NULL CHECK (action IN (
@@ -111,7 +111,7 @@ CREATE INDEX pending_actions_status ON pending_actions (status, created_at);
 | `add_event` | `title`、`start_at`、`end_at`（省略可）、`all_day`（既定 false）、`location`・`notes`（省略可） | 変更の結果 | 変える |
 | `complete_event` | `event_id` | 変更の結果 | 変える |
 | `delete_event` | `event_id` | 変更の結果 | 変える |
-| `get_brief` | なし | 今日の予定・今日までのタスク・期限切れのタスク（DT-5-2 で A が作る） | 読む |
+| `get_brief` | なし | 今日の予定・今日までのタスク・期限切れのタスク（DT-6-2 で A が作る） | 読む |
 
 - 一覧は最大 50 件。それより多いときは `truncated: true` を付ける（声で読み上げきれないため）
 - 引数の名前と docstring は、AI が迷わないように具体的に書く（例: 「`due_date` は `2026-11-05` の形。『明日』などは AI が日付に直してから渡す」）
@@ -119,9 +119,9 @@ CREATE INDEX pending_actions_status ON pending_actions (status, created_at);
 
 **変更の結果の形**（p4 と p5 で `status` だけが変わる。画面と音声は両方に対応しておく）
 ```json
-// p4（DT-4-2）: すぐ実行する
+// p5（DT-5-1）: すぐ実行する
 { "status": "done", "summary": "タスク「牛乳を買う」を追加しました", "item": { "id": 3, "title": "牛乳を買う", "...": "..." } }
-// p5（DT-5-1）から: 実行せず承認を待つ
+// p6（DT-6-1）から: 実行せず承認を待つ
 { "status": "pending", "summary": "タスク「牛乳を買う」を追加します。よろしいですか？", "pending_id": 7 }
 ```
 
@@ -133,14 +133,14 @@ CREATE INDEX pending_actions_status ON pending_actions (status, created_at);
 | `conflict` | `conflict: タスク 3 はすでに完了しています` |
 | `internal` | `internal: 保存に失敗しました`（原因はサーバーのログにだけ書く。ユーザーのデータは書かない） |
 
-### 画面用 HTTP API（DT-4-3・A が作る）
+### 画面用 HTTP API（DT-5-2・A が作る）
 MCP ツールと**同じリポジトリ層の関数**を呼ぶ（処理を二重に書かない）。形は FastAPI から `contracts/tools-api.json` に自動生成する。
 | メソッドとパス | 中身 |
 |---|---|
 | `GET /tasks?status=open` ／ `POST /tasks` ／ `POST /tasks/{id}/complete` ／ `DELETE /tasks/{id}` | タスクの一覧・追加・完了・削除 |
 | `GET /events?from=&to=` ／ `POST /events` ／ `POST /events/{id}/complete` ／ `DELETE /events/{id}` | 予定の一覧・追加・完了・削除 |
-| `GET /approvals?status=pending` | 承認待ちの一覧（承認カード用。DT-5-1） |
-| `POST /approvals/{id}/approve` ／ `POST /approvals/{id}/reject` | 承認して実行する／断る（DT-5-1） |
+| `GET /approvals?status=pending` | 承認待ちの一覧（承認カード用。DT-6-1） |
+| `POST /approvals/{id}/approve` ／ `POST /approvals/{id}/reject` | 承認して実行する／断る（DT-6-1） |
 
 - **画面のボタンで行う変更は、承認カードを出さずにすぐ実行する**（ボタンを押すこと自体が承認）。承認カードが出るのは、AI（文字・声の会話）からの変更だけ
 - エラーは HTTP の状態コード（400・404・409・500）と、`{"code": "not_found", "message": "日本語"}` で返す。種類は MCP と同じ
