@@ -1,6 +1,12 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { buildProgress, collectProgress, mergeTaskStatus } from './progress-data.mjs';
+import {
+  buildProgress,
+  collectProgress,
+  describeFetchFailure,
+  describeGhFailure,
+  mergeTaskStatus,
+} from './progress-data.mjs';
 
 const task = (id, over = {}) => ({
   id,
@@ -125,7 +131,7 @@ test('全員担当のタスクは PR の作者のカードにだけ PR の状況
 function fakeRun(files, prs, fail = {}) {
   return async (cmd, args) => {
     if (cmd === 'git' && args[0] === 'fetch') {
-      if (fail.fetch) throw new Error('fetch できない');
+      if (fail.fetch) throw new Error(fail.fetch === true ? 'fetch できない' : fail.fetch);
       return '';
     }
     if (cmd === 'git' && args[0] === 'show') {
@@ -133,7 +139,7 @@ function fakeRun(files, prs, fail = {}) {
       return files[args[1]];
     }
     if (cmd === 'gh') {
-      if (fail.gh) throw new Error('gh できない');
+      if (fail.gh) throw new Error(fail.gh === true ? 'gh できない' : fail.gh);
       return JSON.stringify(prs);
     }
     throw new Error(`想定外の呼び出し: ${cmd}`);
@@ -184,7 +190,36 @@ test('gh が使えなければ main の情報だけで表示し、警告を出�
   const p = await collectProgress({ run: fakeRun(baseFiles, [], { gh: true }), ...clock });
   assert.equal(p.overall.open, 1);
   assert.deepEqual(p.prs, []);
-  assert.match(p.warnings[0], /gh auth login/);
+  assert.match(p.warnings[0], /未マージの PR を読めませんでした/);
+});
+
+test('ネットにつながらず gh が失敗したら、接続を確かめるよう案内する', async () => {
+  const gh =
+    'Command failed: gh pr list\nerror connecting to api.github.com\ncheck your internet connection';
+  const p = await collectProgress({ run: fakeRun(baseFiles, [], { gh }), ...clock });
+  assert.match(p.warnings[0], /GitHub につながらなかった/);
+  assert.doesNotMatch(p.warnings[0], /gh auth login/);
+});
+
+test('gh の失敗の原因ごとに警告の文を変える', () => {
+  assert.match(describeGhFailure('Could not resolve host: github.com'), /ネットの接続/);
+  assert.match(describeGhFailure('getaddrinfo ENOTFOUND api.github.com'), /ネットの接続/);
+  assert.match(
+    describeGhFailure('To get started with GitHub CLI, please run:  gh auth login'),
+    /gh auth login/,
+  );
+  assert.match(describeGhFailure('HTTP 401: Bad credentials'), /gh auth login/);
+  assert.match(describeGhFailure('spawn gh ENOENT'), /gh（GitHub CLI）が見つからない/);
+  assert.match(describeGhFailure('よく分からない失敗'), /ログ/);
+});
+
+test('fetch がネットの問題で失敗したら、そう伝える', async () => {
+  const fetch =
+    "fatal: unable to access 'https://github.com/o/r.git/': Could not resolve host: github.com";
+  const p = await collectProgress({ run: fakeRun(baseFiles, [ghPr], { fetch }), ...clock });
+  assert.match(p.warnings[0], /GitHub につながらなかった/);
+  assert.match(p.warnings[0], /前回取得した内容/);
+  assert.match(describeFetchFailure('何かの失敗'), /前回取得した内容/);
 });
 
 test('先頭コミットの形がおかしい PR は読まずに警告を出す', async () => {

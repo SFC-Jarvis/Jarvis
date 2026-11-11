@@ -16,6 +16,32 @@ const execFileAsync = promisify(execFile);
 const OID_RE = /^[0-9a-f]{40}$/;
 const PR_FIELDS = 'number,title,url,isDraft,headRefName,headRefOid,author,additions,deletions,body';
 
+const NETWORK_RE =
+  /Could not resolve host|error connecting to|check your internet|ENOTFOUND|EAI_AGAIN|ETIMEDOUT|ECONNREFUSED|ECONNRESET|Network is unreachable|timed out/i;
+const AUTH_RE = /gh auth login|not logged in|authentication|HTTP 401|Bad credentials/i;
+const MISSING_RE = /ENOENT|command not found/i;
+const NO_MAIN = '（main の情報だけを表示しています）';
+
+/** gh pr list の失敗の原因（エラー文）から、画面に出す警告の文を作る */
+export function describeGhFailure(message) {
+  if (NETWORK_RE.test(message))
+    return `GitHub につながらなかったため、未マージの PR を読めませんでした。ネットの接続を確認してください${NO_MAIN}`;
+  if (AUTH_RE.test(message))
+    return `GitHub にログインしていないため、未マージの PR を読めませんでした。\`gh auth login\` を実行してください${NO_MAIN}`;
+  if (MISSING_RE.test(message))
+    return `gh（GitHub CLI）が見つからないため、未マージの PR を読めませんでした。docs/SETUP.md の手順で入れてください${NO_MAIN}`;
+  return `未マージの PR を読めませんでした。原因は進捗サーバーのログ（dev.sh の progress ウィンドウ）に出ています${NO_MAIN}`;
+}
+
+/** git fetch の失敗の原因（エラー文）から、画面に出す警告の文を作る */
+export function describeFetchFailure(message) {
+  if (NETWORK_RE.test(message))
+    return 'GitHub につながらなかったため、前回取得した内容で表示しています。ネットの接続を確認してください';
+  return '最新の情報を取得できなかったので、前回取得した内容で表示しています。原因は進捗サーバーのログに出ています';
+}
+
+const errorText = (e) => (e instanceof Error ? e.message : String(e));
+
 async function runCommand(cmd, args) {
   const { stdout } = await execFileAsync(cmd, args, {
     cwd: ROOT,
@@ -146,10 +172,8 @@ async function loadOpenPrs(schedule, run, warnings) {
     ]);
     raw = JSON.parse(out);
   } catch (e) {
-    console.error('gh pr list に失敗:', e instanceof Error ? e.message : e);
-    warnings.push(
-      '未マージの PR を読めませんでした。`gh auth login` を確認してください（main の情報だけを表示しています）',
-    );
+    console.error('gh pr list に失敗:', errorText(e));
+    warnings.push(describeGhFailure(errorText(e)));
     return [];
   }
   return Promise.all(
@@ -182,8 +206,8 @@ export async function collectProgress({ run = runCommand, date, now = () => new 
   try {
     await run('git', ['fetch', '--quiet', 'origin']);
   } catch (e) {
-    console.error('git fetch に失敗:', e instanceof Error ? e.message : e);
-    warnings.push('最新の情報を取得できなかったので、前回取得した内容で表示しています');
+    console.error('git fetch に失敗:', errorText(e));
+    warnings.push(describeFetchFailure(errorText(e)));
   }
   const schedule = JSON.parse(await run('git', ['show', 'origin/main:docs/schedule.json']));
   const { tasks: mainTasks, malformed } = await readTasksAt(schedule, 'origin/main', run);
