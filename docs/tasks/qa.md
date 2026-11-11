@@ -45,6 +45,10 @@ ID の真ん中の数字は期間（p3 → INT-3-1）。終わったら [x] に�
   - 完了条件: 全員の PC でシナリオが通る
 - [ ] QA-4-2 [S] セキュリティ確認（127.0.0.1 だけで待ち受けているか、キーの管理） @A
   - 完了条件: 確認表に問題がない
+- [ ] QA-4-3 [S] 手順書（docs/SETUP.md・openclaw/README.md）だけで OpenClaw を入れ、`node scripts/openclaw-check.mjs` を実行する。詰まった所を C に伝える @A
+  - 完了条件: 自分の PC で `OK` が出た（QA-3-1 の確認）
+- [ ] QA-4-4 [S] 手順書（docs/SETUP.md・openclaw/README.md）だけで OpenClaw を入れ、`node scripts/openclaw-check.mjs` を実行する。詰まった所を C に伝える @B
+  - 完了条件: 自分の PC で `OK` が出た（QA-3-1 の確認）
 
 ## p5 第5回（第9週）タスクと予定を管理できる
 - [ ] QA-5-1 [M] タスク操作のテスト @B
