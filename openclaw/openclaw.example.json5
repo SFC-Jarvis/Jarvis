@@ -1,0 +1,35 @@
+// JARVIS 用の OpenClaw 設定のうち、チームでそろえる部分の例（INT-3-1・OpenClaw 2026.10.10 で確認）。
+// 実際の設定は ~/.openclaw/openclaw.json（onboard が作る）。このファイルを丸ごとコピーはしない。
+// 違っていたら `openclaw config set <パス> <値>` で合わせる（手順は openclaw/README.md）。
+// トークンと API キーはここに書かない。
+{
+  gateway: {
+    mode: "local",
+    port: 18789,
+    // 待ち受けは 127.0.0.1 のみ（docs/CODING_RULES.md）
+    bind: "loopback",
+    auth: {
+      mode: "token",
+      // token は onboard が自動で作り ~/.openclaw/openclaw.json に保存する。同じ値を .env.local の OPENCLAW_GATEWAY_TOKEN に書く
+    },
+    tailscale: { mode: "off" },
+    http: {
+      endpoints: {
+        // OpenAI 互換 API（/v1/chat/completions）。既定は無効
+        chatCompletions: { enabled: true },
+      },
+    },
+  },
+  telemetry: { enabled: false },
+  agents: {
+    defaults: {
+      // AI は PC ごとの設定。Mac は Gemini 無料枠の Flash Lite（1 日 500 回。Flash 系は 20 回と少ない）、
+      // Windows（WSL2）は Ollama の "ollama/qwen3.5:9b"。どちらも 2026-11-05 に 3 往復を確認
+      model: { primary: "google/gemini-3.5-flash-lite" },
+    },
+    // エージェントは jarvis の 1 つだけ（contracts/openclaw.md の openclaw/default がこれを指す）
+    entries: {
+      jarvis: { name: "Jarvis" },
+    },
+  },
+}
