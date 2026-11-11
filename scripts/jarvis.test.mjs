@@ -1,6 +1,15 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { daysUntil, findPeriod, isMine, loadSchedule, loadTasks, parseTasks } from './jarvis.mjs';
+import {
+  daysUntil,
+  findPeriod,
+  fmtTask,
+  isMine,
+  loadSchedule,
+  loadTasks,
+  parseTasks,
+  progressCell,
+} from './jarvis.mjs';
 
 const s = loadSchedule();
 
@@ -48,4 +57,49 @@ test('docs/tasks の全タスクが読め、ID が重複しない', () => {
       s.periods.some((p) => p.id === t.period),
       t.id,
     );
+});
+
+test('[~] は部分的に完了として読み、残りの作業も読む', () => {
+  const md = [
+    '## p3 第3回',
+    '- [~] X-1 [M] 作る',
+    '  - 完了条件: 全員で確認した',
+    '  - 残り: A・B の確認',
+  ].join('\n');
+  const [t] = parseTasks(md, 'qa', 'C');
+  assert.equal(t.done, false);
+  assert.equal(t.partial, true);
+  assert.equal(t.condition, '全員で確認した');
+  assert.equal(t.remaining, 'A・B の確認');
+});
+
+test('[ ] と [x] は部分的に完了にならない', () => {
+  const md = ['## p3 第3回', '- [ ] X-1 [M] 作る', '- [x] X-2 [S] 確認する'].join('\n');
+  assert.deepEqual(
+    parseTasks(md, 'qa', 'C').map((t) => t.partial),
+    [false, false],
+  );
+});
+
+test('部分的に完了のタスクは [~] と残りの作業を表示する', () => {
+  const t = {
+    area: 'qa',
+    id: 'X-1',
+    size: 'M',
+    title: '作る',
+    owner: 'C',
+    done: false,
+    partial: true,
+    condition: '動く',
+    remaining: 'A の確認',
+  };
+  const out = fmtTask(t, { areas: { qa: { name: '品質保証' } } });
+  assert.match(out, /- \[~\] X-1 \[M\]/);
+  assert.match(out, /残り: A の確認/);
+});
+
+test('進捗表のセルに部分的に完了の件数を添える', () => {
+  assert.equal(progressCell([{ done: true }, { partial: true }, {}]), '1/3（部分 1）');
+  assert.equal(progressCell([{ done: true }, {}]), '1/2');
+  assert.equal(progressCell([]), '—');
 });

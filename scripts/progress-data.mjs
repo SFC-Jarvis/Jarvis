@@ -20,7 +20,7 @@ async function runCommand(cmd, args) {
 // 今後の予定として触れただけのものを除くため、本文のチェックリストの行だけを見る
 function listedInChecklist(body, id) {
   const escaped = id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-  return new RegExp(`^\\s*- \\[[ xX]\\] ${escaped}(?![A-Za-z0-9-])`, 'm').test(body ?? '');
+  return new RegExp(`^\\s*- \\[[ xX~]\\] ${escaped}(?![A-Za-z0-9-])`, 'm').test(body ?? '');
 }
 
 // 全員担当のタスクは 1 つのチェックを共有するので、PR の作者以外のカードには PR の状況を出さない
@@ -28,27 +28,35 @@ function forMember(task, githubLogin, prs) {
   if (task.owner !== 'all' || task.status === 'merged') return task;
   const isOwn = (number) => prs.some((pr) => pr.number === number && pr.author === githubLogin);
   const doneInPrs = task.doneInPrs.filter(isOwn);
+  const partialInPrs = task.partialInPrs.filter(isOwn);
   const mentionedInPrs = task.mentionedInPrs.filter(isOwn);
   let status = 'open';
   if (doneInPrs.length) status = 'pr';
+  else if (task.partial || partialInPrs.length) status = 'partial';
   else if (mentionedInPrs.length) status = 'working';
-  return { ...task, status, doneInPrs, mentionedInPrs };
+  return { ...task, status, doneInPrs, partialInPrs, mentionedInPrs };
 }
 
-/** main のタスクに、未マージの PR の状況を重ねて status（merged / pr / working / open）を付ける */
+/** main のタスクに、未マージの PR の状況を重ねて status（merged / pr / partial / working / open）を付ける */
 export function mergeTaskStatus(mainTasks, prs) {
   return mainTasks.map((t) => {
     const doneInPrs = prs
       .filter((pr) => pr.tasks.some((x) => x.id === t.id && x.done))
       .map((pr) => pr.number);
+    const partialInPrs = prs
+      .filter((pr) => !doneInPrs.includes(pr.number))
+      .filter((pr) => pr.tasks.some((x) => x.id === t.id && x.partial))
+      .map((pr) => pr.number);
+    const counted = [...doneInPrs, ...partialInPrs];
     const mentionedInPrs = prs
-      .filter((pr) => !doneInPrs.includes(pr.number) && listedInChecklist(pr.body, t.id))
+      .filter((pr) => !counted.includes(pr.number) && listedInChecklist(pr.body, t.id))
       .map((pr) => pr.number);
     let status = 'open';
     if (t.done) status = 'merged';
     else if (doneInPrs.length) status = 'pr';
+    else if (t.partial || partialInPrs.length) status = 'partial';
     else if (mentionedInPrs.length) status = 'working';
-    return { ...t, status, doneInPrs, mentionedInPrs };
+    return { ...t, status, doneInPrs, partialInPrs, mentionedInPrs };
   });
 }
 
@@ -58,6 +66,7 @@ function summarize(tasks) {
     total: tasks.length,
     merged: count('merged'),
     pr: count('pr'),
+    partial: count('partial'),
     working: count('working'),
     open: count('open'),
   };

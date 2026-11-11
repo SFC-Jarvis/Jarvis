@@ -39,10 +39,14 @@ export function currentMember(root = ROOT, env = process.env) {
   return null;
 }
 
-const TASK_RE = /^- \[( |x|X)\] (\S+) \[(S|M|L|-)\] (.+?)(?:\s+@([A-Za-z]+))?\s*$/;
+const TASK_RE = /^- \[( |x|X|~)\] (\S+) \[(S|M|L|-)\] (.+?)(?:\s+@([A-Za-z]+))?\s*$/;
 const DONE_RE = /^\s+- 完了条件[:：]\s*(.+)$/;
+const REMAIN_RE = /^\s+- 残り[:：]\s*(.+)$/;
 
-/** docs/tasks/*.md を読んで [{area, period, id, size, title, owner, done, condition}] を返す */
+/**
+ * docs/tasks/*.md を読んで [{area, period, id, size, title, owner, done, partial, condition, remaining}] を返す。
+ * [~] は部分的に完了（自分の作業は済み、確認などが残っている）。残りは「- 残り: ...」の行に書く
+ */
 export function parseTasks(text, area, defaultOwner) {
   const tasks = [];
   let period = null;
@@ -57,17 +61,21 @@ export function parseTasks(text, area, defaultOwner) {
       tasks.push({
         area,
         period,
-        done: m[1] !== ' ',
+        done: m[1] === 'x' || m[1] === 'X',
+        partial: m[1] === '~',
         id: m[2],
         size: m[3],
         title: m[4],
         owner: m[5] ?? defaultOwner,
         condition: '',
+        remaining: '',
       });
       continue;
     }
     const d = line.match(DONE_RE);
     if (d && tasks.length) tasks.at(-1).condition = d[1];
+    const r = line.match(REMAIN_RE);
+    if (r && tasks.length) tasks.at(-1).remaining = r[1];
   }
   return tasks;
 }
@@ -110,10 +118,19 @@ function args(argv) {
   return out;
 }
 
-function fmtTask(t, s) {
+export function fmtTask(t, s) {
   const area = s.areas[t.area]?.name ?? t.area;
   const cond = t.condition ? `\n      完了条件: ${t.condition}` : '';
-  return `  - [${t.done ? 'x' : ' '}] ${t.id} [${t.size}] (${area}${t.owner === 'all' ? '・全員' : ''}) ${t.title}${cond}`;
+  const rest = t.partial && t.remaining ? `\n      残り: ${t.remaining}` : '';
+  const mark = t.done ? 'x' : t.partial ? '~' : ' ';
+  return `  - [${mark}] ${t.id} [${t.size}] (${area}${t.owner === 'all' ? '・全員' : ''}) ${t.title}${cond}${rest}`;
+}
+
+/** 進捗表のセル: 完了数/全体（部分的に完了があれば件数を添える） */
+export function progressCell(ts) {
+  if (!ts.length) return '—';
+  const partial = ts.filter((t) => t.partial).length;
+  return `${ts.filter((t) => t.done).length}/${ts.length}${partial ? `（部分 ${partial}）` : ''}`;
 }
 
 function periodLine(p, date) {
@@ -180,13 +197,11 @@ function main(argv) {
         const per = s.periods.find((x) => x.id === id);
         const cells = Object.keys(s.areas).map((k) => {
           const ts = all.filter((t) => t.period === id && t.area === k);
-          return ts.length ? `${ts.filter((t) => t.done).length}/${ts.length}` : '—';
+          return progressCell(ts);
         });
         const ts = all.filter((t) => t.period === id);
         const mark = id === findPeriod(s, date).id ? ' ◀ 今' : '';
-        console.log(
-          `| ${per.label}${mark} | ${cells.join(' | ')} | ${ts.filter((t) => t.done).length}/${ts.length} |`,
-        );
+        console.log(`| ${per.label}${mark} | ${cells.join(' | ')} | ${progressCell(ts)} |`);
       }
       return;
     }
@@ -200,7 +215,7 @@ function main(argv) {
         `[JARVIS] 期間: ${periodLine(p, date)}`,
         `[JARVIS] あなた: ${member ?? '未設定（./scripts/setup.sh を実行）'}`,
         `[JARVIS] ブランチ: ${branch || '不明'}（未コミット ${dirty} 件）`,
-        `[JARVIS] 未完了タスク ${open.length}/${mine.length} 件`,
+        `[JARVIS] 未完了タスク ${open.length}/${mine.length} 件${open.some((t) => t.partial) ? `（うち部分的に完了 ${open.filter((t) => t.partial).length} 件）` : ''}`,
       ];
       if (!o.brief) lines.push(...mine.map((t) => fmtTask(t, s)));
       console.log(lines.join('\n'));

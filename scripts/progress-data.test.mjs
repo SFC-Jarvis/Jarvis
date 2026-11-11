@@ -87,7 +87,7 @@ test('今の期間と残り日数、メンバーごとの今期のタスクを�
   const p = buildProgress({ schedule, mainTasks: tasks, prs: [], date: '2026-11-05' });
   assert.equal(p.current.id, 'p3');
   assert.equal(p.current.daysLeft, 7);
-  assert.deepEqual(p.overall, { total: 4, merged: 1, pr: 0, working: 0, open: 3 });
+  assert.deepEqual(p.overall, { total: 4, merged: 1, pr: 0, partial: 0, working: 0, open: 3 });
   const c = p.members.find((m) => m.id === 'C');
   assert.deepEqual(
     c.tasks.map((t) => t.id),
@@ -207,4 +207,35 @@ test('PR のタスクファイルを読めなければ警告を出す', async ()
 
 test('schedule を読めなければエラーにする', async () => {
   await assert.rejects(collectProgress({ run: fakeRun({}, []), ...clock }));
+});
+
+test('main で [~] のタスクは部分的に完了と判定する', () => {
+  const [t] = mergeTaskStatus([task('X-1', { partial: true })], []);
+  assert.equal(t.status, 'partial');
+});
+
+test('未マージの PR で [~] のタスクは部分的に完了と判定する', () => {
+  const [t] = mergeTaskStatus([task('X-1')], [pr(7, [task('X-1', { partial: true })])]);
+  assert.equal(t.status, 'partial');
+  assert.deepEqual(t.partialInPrs, [7]);
+});
+
+test('main で [~] でも、未マージの PR で [x] なら未マージの完了を優先する', () => {
+  const [t] = mergeTaskStatus(
+    [task('X-1', { partial: true })],
+    [pr(8, [task('X-1', { done: true })])],
+  );
+  assert.equal(t.status, 'pr');
+});
+
+test('集計に部分的に完了の件数を含める', () => {
+  const p = buildProgress({
+    schedule,
+    mainTasks: [task('X-1', { partial: true }), task('X-2', { done: true })],
+    prs: [],
+    date: '2026-11-05',
+    fetchedAt: 'now',
+  });
+  assert.equal(p.overall.partial, 1);
+  assert.equal(p.overall.merged, 1);
 });

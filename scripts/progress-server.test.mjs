@@ -13,7 +13,7 @@ const task = (over = {}) => ({
   mentionedInPrs: [],
   ...over,
 });
-const summary = { total: 1, merged: 0, pr: 0, working: 0, open: 1 };
+const summary = { total: 1, merged: 0, pr: 0, partial: 0, working: 0, open: 1 };
 const progress = (over = {}) => ({
   date: '2026-11-05',
   fetchedAt: '2026-11-05 12:00:00',
@@ -205,4 +205,24 @@ test('Host がローカルでなければ 403 を返す', async () => {
     });
     assert.equal(status, 403);
   });
+});
+
+test('部分的に完了のタスクは状態と残りの作業を表示する', () => {
+  const s = { total: 1, merged: 0, pr: 0, partial: 1, working: 0, open: 0 };
+  const html = renderPage(
+    progress({
+      overall: s,
+      members: [
+        {
+          id: 'C',
+          name: 'Sota',
+          summary: s,
+          tasks: [task({ status: 'partial', remaining: '<A> の確認' })],
+        },
+      ],
+    }),
+  );
+  assert.match(html, /部分的に完了/);
+  assert.match(html, /残り: &lt;A&gt; の確認/);
+  assert.match(html, /部分 1/);
 });

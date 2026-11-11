@@ -2,6 +2,7 @@
 const STATUS = {
   merged: { label: '完了（main）', cls: 'merged' },
   pr: { label: '完了（未マージ）', cls: 'pr' },
+  partial: { label: '部分的に完了', cls: 'partial' },
   working: { label: '作業中（PR あり）', cls: 'working' },
   open: { label: '未完了', cls: 'open' },
 };
@@ -20,7 +21,7 @@ function pct(n, total) {
 }
 
 function bar(s) {
-  const parts = ['merged', 'pr', 'working']
+  const parts = ['merged', 'pr', 'partial', 'working']
     .filter((k) => s[k] > 0)
     .map((k) => `<span class="seg ${k}" style="width:${pct(s[k], s.total).toFixed(2)}%"></span>`)
     .join('');
@@ -29,7 +30,7 @@ function bar(s) {
 
 function counts(s) {
   return `<p class="counts"><b>${s.merged + s.pr} / ${s.total}</b> 件完了
-    <span>（main ${s.merged}・未マージ ${s.pr}・作業中 ${s.working}・未完了 ${s.open}）</span></p>`;
+    <span>（main ${s.merged}・未マージ ${s.pr}・部分 ${s.partial ?? 0}・作業中 ${s.working}・未完了 ${s.open}）</span></p>`;
 }
 
 function prRefs(numbers) {
@@ -38,11 +39,16 @@ function prRefs(numbers) {
 
 function taskRow(t) {
   const st = STATUS[t.status] ?? STATUS.open;
-  const refs = prRefs([...(t.doneInPrs ?? []), ...(t.mentionedInPrs ?? [])]);
+  const refs = prRefs([
+    ...(t.doneInPrs ?? []),
+    ...(t.partialInPrs ?? []),
+    ...(t.mentionedInPrs ?? []),
+  ]);
+  const rest = t.status === 'partial' && t.remaining ? ` ・ 残り: ${esc(t.remaining)}` : '';
   return `<li>
     <span class="badge ${st.cls}">${st.label}</span>
     <span class="task"><code>${esc(t.id)}</code> ${esc(t.title)}
-      <small>${t.owner === 'all' ? '全員' : `担当 ${esc(t.owner)}`}${refs ? ` ・ ${refs}` : ''}</small></span>
+      <small>${t.owner === 'all' ? '全員' : `担当 ${esc(t.owner)}`}${refs ? ` ・ ${refs}` : ''}${rest}</small></span>
   </li>`;
 }
 
@@ -95,17 +101,17 @@ small{display:block;font-size:12px}
 .hero .days{font-size:30px;font-weight:700}
 .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:12px}
 .bar{display:flex;height:10px;background:#262626;border-radius:5px;overflow:hidden;margin:8px 0}
-.seg.merged{background:#22c55e}.seg.pr{background:#38bdf8}.seg.working{background:#f59e0b}
+.seg.merged{background:#22c55e}.seg.pr{background:#38bdf8}.seg.partial{background:#a78bfa}.seg.working{background:#f59e0b}
 .counts{margin:0 0 8px}
 .tasks{list-style:none;margin:0;padding:0}
 .tasks li{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid #262626}
 .task{min-width:0;overflow-wrap:anywhere}
 code{color:#d4d4d4;font-size:12px}
 .badge{flex:none;width:118px;padding:1px 6px;border:1px solid;border-radius:5px;font-size:11px;text-align:center}
-.badge.merged{color:#4ade80}.badge.pr{color:#7dd3fc}.badge.working{color:#fbbf24}.badge.open{color:#a3a3a3}
+.badge.merged{color:#4ade80}.badge.pr{color:#7dd3fc}.badge.partial{color:#c4b5fd}.badge.working{color:#fbbf24}.badge.open{color:#a3a3a3}
 .legend{display:flex;flex-wrap:wrap;gap:4px 16px;margin:8px 0 0;font-size:12px;color:#a3a3a3}
 .dot{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:5px}
-.dot.merged{background:#22c55e}.dot.pr{background:#38bdf8}.dot.working{background:#f59e0b}.dot.open{background:#404040}
+.dot.merged{background:#22c55e}.dot.pr{background:#38bdf8}.dot.partial{background:#a78bfa}.dot.working{background:#f59e0b}.dot.open{background:#404040}
 details{background:#171717;border:1px solid #262626;border-radius:10px;margin-bottom:8px;padding:0 16px}
 summary{display:grid;grid-template-columns:90px minmax(0,1fr) 160px 60px;gap:12px;align-items:center;padding:12px 0;cursor:pointer}
 summary .bar{margin:0}
@@ -148,6 +154,7 @@ ${warnings}
   <p class="legend">
     <span><i class="dot merged"></i>完了（main）</span>
     <span><i class="dot pr"></i>完了（未マージの PR で [x]）</span>
+    <span><i class="dot partial"></i>部分的に完了（[~]。確認などが残っている）</span>
     <span><i class="dot working"></i>作業中（PR のチェックリストにあり）</span>
     <span><i class="dot open"></i>未完了</span>
   </p>
