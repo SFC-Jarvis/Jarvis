@@ -44,7 +44,7 @@ dev.sh --mock     # 開発環境を開く。どのフォルダーからでも動
 4. Claude に指示して開発する（テスト → 実装の順。画面は http://localhost:3000）
 5. 終わるときは必ず **`/done`**（テスト → コミット → Push → Draft PR の更新）
 
-発表の前日は `/report`、発表の後は `/ship`（レビュー依頼）と `/review <PR番号>`（他の人の PR を確認）。
+発表の前日は `/report`（報告文の md ファイルがダウンロードフォルダに保存される。共有ドライブに置く）、発表の後は `/ship`（レビュー依頼）と `/review <PR番号>`（他の人の PR を確認）。
 詳しくは [docs/WORKFLOW.md](docs/WORKFLOW.md)。
 
 ## 4. 進捗を見る
