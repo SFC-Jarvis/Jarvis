@@ -1,0 +1,36 @@
+# AI（Claude）の利用記録
+
+JARVIS の開発で Claude（Claude Code・Claude アプリ）に出した**重要なプロンプト**を、メンバーごとに記録する。教員への報告と、チームの振り返りに使う。
+
+| メンバー | 記録 |
+|---|---|
+| C（Sota） | [C.md](C.md) |
+| A | [A.md](A.md) |
+| B | [B.md](B.md) |
+
+## 何を残すか
+残すのは、**判断や方針を決めたプロンプト**と、**作業を指示したプロンプト**だけ。
+
+- 残す: 方針の決定（例: 「Ollama は Windows の PC だけで使う」）、作業の指示（例: 「/report の md をダウンロードフォルダに保存するようにして」）、仕組みの変更、不具合の報告と修正の指示、カスタムコマンドの使い方の工夫
+- 残さない: 確認のための短い質問、要約の依頼、言い換え・語尾の調整、「はい」「進めて」などの返事、設定画面の選択肢を 1 つずつ聞いただけのもの
+- 同じ目的の短いやりとりが続いたときは、1 件にまとめる
+
+例（残すプロンプト）:
+> please create a document that keeps track of a summary of all influential prompts that were asked to formulate these idea documents, omitting unimportant prompts like clarifying questions, summary demand, rewording, etc.
+
+## 書き方
+1 件ずつ、次の形で時系列に足す。
+
+```markdown
+### <日付> <タスク ID または目的>（<Claude Code / Claude アプリ>）
+> <プロンプトの原文。長い貼り付け（ログなど）は「（ログを貼り付け）」と書いて省く>
+
+- 結果: <何が決まり、何ができたか。PR があれば番号>
+```
+
+- プロンプトは原文の言語のまま書く（英語なら英語）。結果は日本語で書く
+- トークン・API キー・パスワード・個人のデータは**書かない**（伏せるのではなく、その部分を省く）
+- `/done` を実行すると、Claude がそのセッションの重要なプロンプトを自分の記録に追記する（ユーザーが確認してからコミット）
+
+## 過去の記録を集めるとき
+`/done` での追記より前の記録は、各自が手元の Claude から集めて貼る。使うプロンプトは [collect-prompts.md](collect-prompts.md)。
