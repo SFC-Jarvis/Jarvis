@@ -32,6 +32,7 @@ data/
 !.jarvis/member.example.json
 .claude/settings.local.json
 logs/
+reports/
 
 # OS / editor
 .DS_Store

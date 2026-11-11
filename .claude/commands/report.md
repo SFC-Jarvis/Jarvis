@@ -1,10 +1,10 @@
 ---
-description: 発表の前に使う。今の期間の成果を、報告スライド用の文章で出す（all で全員分）
+description: 発表の前に使う。今の期間の成果を、報告スライド用の文章にして md ファイルで保存する（all で全員分）
 argument-hint: "[all] [YYYY-MM-DD]"
-allowed-tools: Bash(node scripts/jarvis.mjs:*), Bash(git log:*), Bash(git diff:*), Bash(git fetch:*), Bash(gh pr list:*), Bash(gh pr view:*), Read
+allowed-tools: Bash(node scripts/jarvis.mjs:*), Bash(git log:*), Bash(git diff:*), Bash(git fetch:*), Bash(gh pr list:*), Bash(gh pr view:*), Bash(node scripts/report-file.mjs:*), Read, Write
 ---
 
-# 進捗報告用の Markdown を出力する
+# 進捗報告用の Markdown をファイルに保存する
 
 ## データ
 期間:
@@ -15,6 +15,9 @@ allowed-tools: Bash(node scripts/jarvis.mjs:*), Bash(git log:*), Bash(git diff:*
 
 自分のタスク:
 !`node scripts/jarvis.mjs tasks $ARGUMENTS`
+
+保存先（発表日_メンバー.md。PC のダウンロードフォルダ）:
+!`node scripts/report-file.mjs $ARGUMENTS`
 
 ## 手順
 1. 引数に `all` が**ない**場合は、自分の分だけを出力する。
@@ -30,8 +33,14 @@ allowed-tools: Bash(node scripts/jarvis.mjs:*), Bash(git log:*), Bash(git diff:*
      - コミット
      - チェックリスト
    - 分からない項目は推測で埋めず、`（要記入）` とする。
-4. 下の形式で、**1 つの markdown コードブロックだけ**を出力する。
-5. 最後に 1 行だけ添える。「このブロックを、スライド作成用の Claude のチャットにそのまま貼ってください」
+4. 下の形式で報告文を作り、**上の「保存先」のパスに Write で保存する**。
+   - ファイルの中身は報告文だけにする（外側の ```` ```` で囲まない）。
+   - 同じ名前のファイルがあれば上書きしてよい（同じ発表日の作り直し）。
+   - 保存先の取得に失敗していたら（メンバーが未設定など）、原因を伝えてチャットへの出力だけにする。
+5. チャットにも、同じ報告文を **1 つの markdown コードブロック**で出力する。
+6. 最後に次の 2 行を添える。
+   - 「保存先: <保存したファイルの絶対パス>」
+   - 「このファイルを共有ドライブのフォルダに置いてください（スライド作成用の Claude のチャットに貼ることもできます）」
 
 ## 出力形式
 ````markdown
