@@ -37,4 +37,4 @@ JARVIS の開発で Claude（Claude Code・Claude アプリ）に出した**重�
 - `/done` を実行すると、Claude がそのセッションの重要なプロンプトを自分の記録に追記する（ユーザーが確認してからコミット）
 
 ## 過去の記録を集めるとき
-`/done` での追記より前の記録は、各自が手元の Claude から集めて貼る。使うプロンプトは [collect-prompts.md](collect-prompts.md)。
+`/done` での追記より前の記録は、各自が手元の Claude（Claude アプリ・Claude Code）に「この会話（または `~/.claude/projects/` の会話記録）から重要なプロンプトを、上の書き方で一覧にして」と頼んで集め、自分の記録に統合する。

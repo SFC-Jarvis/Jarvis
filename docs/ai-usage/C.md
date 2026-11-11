@@ -7,16 +7,17 @@
 ## 概要
 - 使ったもの: Claude Code（VS Code の拡張・ターミナル。Mac と Windows の WSL2）、Claude アプリ（計画・スライド作成）
 - 使い方の型: カスタムコマンドで作業を区切る（`/start` → テストから実装 → `/done`、発表前に `/report`、main の更新後に `/sync`）。Claude には「計画を示して了承を得てから実装」「確かめた手順だけチェックを付ける」を CLAUDE.md で指示している
-- 記録の出どころ: Mac の Claude Code の会話記録（11/3〜11/11）と、Claude アプリの会話から集めた記録（10/27 より前〜11/9）。10/27 より前のアプリの記録は原文が残っておらず、要旨で書いた
+- 記録の出どころ: Mac の Claude Code の会話記録（11/3〜11/11）、Windows PC の Claude Code の会話記録（11/5〜11/11）、Claude アプリの会話から集めた記録（10/27 より前〜11/9）。10/27 より前のアプリの記録は原文が残っておらず、要旨で書いた
+- 見出しの「Claude Code」は Mac、「Claude Code: Windows PC」は Windows PC（WSL2 のターミナル・PowerShell・VS Code の拡張）での記録
 - Mac の Claude Code の記録にあるカスタムコマンドの利用（11/3〜11/11）: `/start` 4 回・`/done` 4 回・`/sync` 4 回・`/report` 3 回
+- Windows PC の Claude Code の記録にあるカスタムコマンドの利用（11/5〜11/11）: `/start` 1 回・`/done` 2 回・`/sync` 6 回（うち 3 回はエラーで止まった）・`/report` 1 回
 
-## 記録がない期間（あとで追記する）
-次の期間・場所の記録はまだない。[collect-prompts.md](collect-prompts.md) のプロンプトで集めて追記する。
+## 記録がない期間
+Mac・Windows PC の Claude Code の記録と、Claude アプリの記録をすべて統合した。以前この表にあった「11/5〜11/9 の Mac」と「Windows の Claude Code」の分は、どちらも Windows PC の記録（11/5）で見つかった（#13〜#15、INT-3-2）。
 
-| 期間・場所 | その間にできたもの（Git の履歴・PR から） |
+| 期間・場所 | 状態 |
 |---|---|
-| 11/5〜11/9（Mac・Claude Code） | 画面のダークテーマ（#13）、進捗ページ（#14）、dev.sh をどこからでも起動（#15） |
-| Windows（WSL2）の Claude Code | Ollama（`qwen3.5:9b`）の導入と速さの測定、WSL2 での手順書（INT-3-2・PR #11 の一部） |
+| 10/27 より前（Claude アプリ） | 原文が残っていないため、要旨で書いた |
 
 ## 記録
 
@@ -223,7 +224,103 @@
 >
 > 【自動翻訳・原文は英語】 INT-3-2 についてもっと教えて。Gemini の版はもう動いていて、あとは Ollama で PC 内の AI を動かす機能を作るだけ、ということ？
 
-- 結果: Gemini 側は動いていることを確認し、Windows で Ollama をつないで測る計画にした。Windows での作業は「記録がない期間」を参照
+- 結果: Gemini 側は動いていることを確認し、Windows で Ollama をつないで測る計画にした。Windows での作業は、このあとの「Claude Code: Windows PC」の記録を参照
+
+### 2026-11-05 開発環境の起動の不具合（Claude Code: Windows PC）
+> running ./scripts/dev.sh only opens the file, not run the sh.
+>
+> 【自動翻訳・原文は英語】./scripts/dev.sh を実行すると、ファイルが開くだけで sh が実行されない。
+
+- 結果: PowerShell から実行していたことが原因と分かった。Windows は .sh を「開くファイル」として扱う。Ubuntu のターミナルで実行するか、`wsl -d Ubuntu-24.04 --cd ~/Jarvis -- ./scripts/dev.sh` で起動すればよい。コードの変更はなし
+
+### 2026-11-05 INT-3-2 Windows で Ollama と OpenClaw をつなぐ（Claude Code: Windows PC）
+> /sync
+>
+> /start
+
+> gateway bind address? ／ tailscale exposure? ／ ◆ Test AI access now with a live completion? ／ bash shell completion?
+>
+> 【自動翻訳・原文は英語】ゲートウェイの待ち受けアドレスは？ ／ Tailscale での公開は？ ／ ◆ 今すぐ実際の応答で AI への接続を試すか？ ／ bash のシェル補完は？
+
+> i arrived to this screen. what next?（ログを貼り付け）
+>
+> 【自動翻訳・原文は英語】この画面に着いた。次は？
+
+> /done
+
+- 結果: ローカルの main に #8〜#10 を取り込んだ。そのあと INT-3-2 を再開した。Windows の Ollama に `qwen3.5:9b` を入れ、WSL2 の OpenClaw をつないだ。初期設定では、待ち受けを 127.0.0.1（ループバック）、Tailscale を Off、接続テストを Yes にした。Windows でも 3 往復の確認が通った（openclaw-check.mjs を 3 回実行し、すべて OK）。測定結果と手順は openclaw/README.md・docs/SETUP.md に書いた。`/done` で INT-3-2 を完了にし、PR #11 を更新した
+- 初期設定の選択肢の質問（4 件）は 1 件にまとめた
+
+### 2026-11-05 画面のダークテーマ化（Claude Code: Windows PC）
+> change the test localhost page to dark theme so i don't get blinded when the page pops up.
+>
+> 【自動翻訳・原文は英語】ページが開いたときにまぶしくないよう、テスト用の localhost のページをダークテーマに変えて。
+
+- 結果: localhost:3000 の配色を暗くし、color-scheme の指定を足した。テストは layout.test.tsx の 2 件（PR #13）
+
+### 2026-11-05 第2.5回の報告文（Claude Code: Windows PC）
+> push the pr so i can force merge this. then run /report
+>
+> 【自動翻訳・原文は英語】強制マージできるよう PR を Push して。それから /report を実行して。
+
+> this time, it is for 2.5, where we didn't get to present last week so it is a makeup/mini update
+>
+> 【自動翻訳・原文は英語】今回は 2.5 回目のためのもの。先週発表できなかったので、補講／簡易の報告。
+
+- 結果: PR #13 を Push した。報告文は「第2回の補講・簡易報告（第3回の途中経過を含む）」として作り直した
+
+### 2026-11-05 進捗ページ（Claude Code: Windows PC）
+> build the progress page, include unmerged PRs. when the official front page is created by member b, allow this progress page to be visible in another clever way like separating ports and openening two localhosts, or creating a tab. tell me what openclaw achieves compared to a simple ai api
+>
+> 【自動翻訳・原文は英語】進捗ページを作って。未マージの PR も含めて。メンバー B が正式なトップページを作ったときは、ポートを分けて 2 つの localhost を開く、タブを作るなどの賢い方法で、この進捗ページを見られるようにして。単純な AI の API と比べて OpenClaw が何を実現するか教えて。
+
+> please push pr so i can force merge this pr and the black screen pr
+>
+> 【自動翻訳・原文は英語】この PR と黒い画面の PR を強制マージできるよう、PR を Push して。
+
+- 結果: 進捗ページを作った。画面とは別のポート 3100 で動き、dev.sh が別タブで開く。未マージの PR の完了分も表示する（PR #14。#13 とあわせてマージ）
+
+### 2026-11-05 main への切り替えとタブの重複（Claude Code: Windows PC）
+> merged both, switch to main and restart dev.sh
+>
+> 【自動翻訳・原文は英語】両方マージした。main に切り替えて dev.sh を再起動して。
+
+> 4 tabs opened in the order of jarvis, jarvis progress, jarvis progress, jarvis.
+>
+> 【自動翻訳・原文は英語】jarvis、jarvis progress、jarvis progress、jarvis の順に 4 つのタブが開いた。
+
+> lets try again. i had all tabs closed before rerunning dev.sh, so i believe either the old tabs reopened or the current dev.sh causes 2 of each page to open
+>
+> 【自動翻訳・原文は英語】もう一度試そう。dev.sh を再実行する前にタブは全部閉じていたので、古いタブが再び開いたか、今の dev.sh が各ページを 2 つずつ開いているのだと思う。
+
+- 結果: main に切り替え、画面・tools・進捗ページを再起動した。もう一度試すとタブは 2 つだけ開き、dev.sh が二重に開いているのではないと確定した。4 タブになったのは、Firefox がタブを復元したためとみている（推測）。コードの変更はなし
+
+### 2026-11-05 dev.sh の起動・停止を簡単にする（Claude Code: Windows PC）
+> please make starting and stopping dev.sh easier. for instance, starting the work requires the long './scripts/' to be entered before (ideally, typing dev.sh is simpler). when stopping work, i need to ctrl b then d then the long sh call command + stop.
+>
+> 【自動翻訳・原文は英語】dev.sh の起動と停止をもっと簡単にして。たとえば、作業を始めるには前に長い './scripts/' を入力する必要がある（理想は dev.sh と打つだけのほうが簡単）。作業を止めるときは、ctrl b、次に d、それから長い sh の呼び出しコマンド + stop が必要。
+
+> push pr for this easy dev.sh ／ i meant to push pr so i can force merge.
+>
+> 【自動翻訳・原文は英語】この簡単な dev.sh の PR を Push して。 ／ 強制マージできるよう PR を Push して、という意味だった。
+
+> fix the tests first
+>
+> 【自動翻訳・原文は英語】先にテストを直して。
+
+> pr has been merged. /done
+>
+> 【自動翻訳・原文は英語】PR はマージされた。/done
+
+- 結果: どのフォルダからでも `dev.sh` で起動できるようにした（登録は `dev.sh install`）。tmux の中では Ctrl-b → X → y で止められる。Windows の CI で失敗していたテスト 2 件を直し、全 10 件が成功した（PR #15）
+
+### 2026-11-05 VS Code の既定のターミナル（Claude Code: Windows PC）
+> can the default terminal in vscode for this project be set to Ubuntu-24.04 (WSL)?
+> all other folders opened in vscode should be kept to powershell
+>
+> 【自動翻訳・原文は英語】このプロジェクトの VS Code の既定のターミナルを Ubuntu-24.04 (WSL) にできるか？ VS Code で開くほかのフォルダはすべて PowerShell のままにしておくこと。
+
+- 結果: .vscode/settings.json を作り、このフォルダだけ既定を Ubuntu-24.04 (WSL) にした。このファイルは .gitignore の対象なので、Windows PC だけの設定になる（コミットなし）
 
 ### 2026-11-09 main の状態の確認（Claude Code）
 > check pr 15's changes (and all other merged prs) and see if the current main is up to date, since dev.sh does not work from Jarvis/.
@@ -296,4 +393,32 @@
 >
 > 【自動翻訳・原文は英語】 できれば、Claude の利用履歴をメンバーごとに 3 つの文書にしてこのリポジトリに保存したい。入れるのは、タスク中の判断・コマンドなどに関わる重要なプロンプトだけ。例えば次のようなもの:「これらのアイデア文書を作るために出した、影響の大きいプロンプトすべての要約を記録する文書を作って。確認の質問・要約の依頼・言い換えなどの重要でないプロンプトは除いて」。今すぐ、この環境で見られる履歴をすべて記録した文書を作れる？ あわせて、Claude アプリと Windows の Claude Code に入れるプロンプトを作ってほしい。そこで記録を取り出してここに貼り、履歴を完全にしたい
 
-- 結果: この記録（docs/ai-usage/）を作った。Mac の会話記録から重要なプロンプトを選び、ほかの場所の記録を集めるプロンプト（collect-prompts.md）を用意した。以後は `/done` のたびに追記する
+- 結果: この記録（docs/ai-usage/）を作った。Mac の会話記録から重要なプロンプトを選び、ほかの場所の記録を集めるプロンプト（collect-prompts.md。統合後に削除）を用意した。以後は `/done` のたびに追記する
+
+### 2026-11-11 /sync が止まる不具合（Claude Code: Windows PC）
+> /sync（3 回とも「dubious ownership」のエラーで止まる）
+>
+> ! git config --global --add safe.directory '（リポジトリのパスは省略）'
+>
+> /sync
+>
+> /sync
+
+- 結果: リポジトリを safe.directory に登録し、Windows 側の git からも読めるようにした。Windows 側の git では、実行権限だけの見かけ上の差分が 4 件出る。そのため git の操作は WSL 側で行うことにした。このブランチ（c/p3-dev-shortcut）は PR #15 でマージ済みと分かったので、rebase はしなかった
+
+### 2026-11-11 main への切り替え（Claude Code: Windows PC）
+> move back to main branch, unless there is any tasks remaining in this branch
+>
+> 【自動翻訳・原文は英語】このブランチに残っている作業がなければ、main ブランチに戻って。
+
+- 結果: Push していないコミットも、未コミットの変更もないことを確かめた。そのうえで main に切り替え、origin/main（#21 まで）に早送りした
+
+### 2026-11-11 Windows PC の記録を集めて統合する（Claude Code: Windows PC）
+> この PC の Claude Code の会話記録から、JARVIS の開発で私が入力した重要なプロンプトを一覧にしてください。（collect-prompts.md の「Claude Code 用」のプロンプト。全文は省略）
+
+> 次の記録を docs/ai-usage/<自分の ID>.md に統合してください。日付順に並べ、重複は 1 件にまとめ、「記録がない期間」の表を更新してください。
+> make a new pr after the record updating has finished, and delete the collect-prompts.md.
+>
+> 【自動翻訳・原文は英語】記録の更新が終わったら新しい PR を作って。collect-prompts.md は削除して。
+
+- 結果: Windows PC の会話記録（7 ファイル）を読み取りだけで集め、この記録に日付順で統合した。VS Code の拡張で入力した分は、本文が文字列ではない形で保存されていたため、これも対象にした。「記録がない期間」の表を更新し、collect-prompts.md を削除した
