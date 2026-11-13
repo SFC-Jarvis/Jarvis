@@ -1,6 +1,6 @@
 import { chat, loadOpenClawConfig, OpenClawError } from './openclaw';
 
-const real = { baseUrl: 'http://gw.test', token: 't0k', mock: false };
+const real = { baseUrl: 'http://gw.test', token: 't0k', mock: false, mockDelayMs: 0 };
 
 describe('loadOpenClawConfig', () => {
   it('環境変数がなければ既定値を使う', () => {
@@ -8,7 +8,15 @@ describe('loadOpenClawConfig', () => {
       baseUrl: 'http://127.0.0.1:18789',
       token: '',
       mock: false,
+      mockDelayMs: 1500,
     });
+  });
+  it('JARVIS_MOCK_DELAY_MS でモックの返答を待つ時間を変えられる', () => {
+    expect(loadOpenClawConfig({ JARVIS_MOCK_DELAY_MS: '300' }).mockDelayMs).toBe(300);
+  });
+  it('JARVIS_MOCK_DELAY_MS が数でなければ既定の 1500 ミリ秒', () => {
+    expect(loadOpenClawConfig({ JARVIS_MOCK_DELAY_MS: 'abc' }).mockDelayMs).toBe(1500);
+    expect(loadOpenClawConfig({ JARVIS_MOCK_DELAY_MS: '-5' }).mockDelayMs).toBe(1500);
   });
   it('JARVIS_MOCK=1 でモックになる', () => {
     expect(loadOpenClawConfig({ JARVIS_MOCK: '1' }).mock).toBe(true);
@@ -26,6 +34,24 @@ describe('chat', () => {
     );
     expect(out).toContain('こんにちは');
     expect(fetchFn).not.toHaveBeenCalled();
+  });
+
+  it('モックは設定した時間だけ待ってから返す（「考えています」を画面で確かめるため）', async () => {
+    const sleep = vi.fn().mockResolvedValue(undefined);
+    await chat(
+      [{ role: 'user', content: 'こんにちは' }],
+      's1',
+      { ...real, mock: true, mockDelayMs: 1500 },
+      vi.fn(),
+      sleep,
+    );
+    expect(sleep).toHaveBeenCalledWith(1500);
+  });
+
+  it('待つ時間が 0 なら待たない', async () => {
+    const sleep = vi.fn().mockResolvedValue(undefined);
+    await chat([], 's1', { ...real, mock: true, mockDelayMs: 0 }, vi.fn(), sleep);
+    expect(sleep).not.toHaveBeenCalled();
   });
 
   it('トークンとセッションキーを付けて送る', async () => {

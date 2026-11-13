@@ -4,7 +4,10 @@ const post = (body: unknown) =>
   POST(new Request('http://localhost/api/chat', { method: 'POST', body: JSON.stringify(body) }));
 
 describe('POST /api/chat', () => {
-  beforeEach(() => vi.stubEnv('JARVIS_MOCK', '1'));
+  beforeEach(() => {
+    vi.stubEnv('JARVIS_MOCK', '1');
+    vi.stubEnv('JARVIS_MOCK_DELAY_MS', '0');
+  });
   afterEach(() => vi.unstubAllEnvs());
 
   it('入力が足りなければ 400', async () => {

@@ -11,7 +11,20 @@ export type OpenClawConfig = {
   baseUrl: string;
   token: string;
   mock: boolean;
+  /** モックの返答を返すまで待つ時間（ミリ秒）。画面で「考えています」を確かめるため */
+  mockDelayMs: number;
 };
+
+const DEFAULT_MOCK_DELAY_MS = 1500;
+
+function parseDelay(raw: string | undefined): number {
+  const n = Number(raw);
+  return raw !== undefined && raw.trim() !== '' && Number.isFinite(n) && n >= 0
+    ? n
+    : DEFAULT_MOCK_DELAY_MS;
+}
+
+const wait = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 export function loadOpenClawConfig(
   env: Record<string, string | undefined> = process.env,
@@ -20,6 +33,7 @@ export function loadOpenClawConfig(
     baseUrl: env.OPENCLAW_BASE_URL ?? 'http://127.0.0.1:18789',
     token: env.OPENCLAW_GATEWAY_TOKEN ?? '',
     mock: env.JARVIS_MOCK === '1',
+    mockDelayMs: parseDelay(env.JARVIS_MOCK_DELAY_MS),
   };
 }
 
@@ -41,8 +55,10 @@ export async function chat(
   sessionKey: string,
   config: OpenClawConfig,
   fetchFn: typeof fetch = fetch,
+  sleep: (ms: number) => Promise<void> = wait,
 ): Promise<string> {
   if (config.mock) {
+    if (config.mockDelayMs > 0) await sleep(config.mockDelayMs);
     const last = messages.at(-1)?.content ?? '';
     return `（モック）「${last}」を受け取りました`;
   }
