@@ -1,6 +1,6 @@
 # チャット画面の設計案（WEB-3-1）
 
-担当: B ／ 状態: **案（全員の確認待ち）** ／ 実装: WEB-3-2（モック）→ WEB-4-1（OpenClaw とつなぐ）
+担当: B ／ 状態: **全員で確認済み（案 2 を採用）** ／ 実装: WEB-3-2（モック）→ WEB-4-1（OpenClaw とつなぐ）
 
 見た目の案（案 2 コア 3 枚・案 1 チャット型 3 枚）: https://claude.ai/artifact/Ss8max8V6KftSS5qrbZ4nH
 
